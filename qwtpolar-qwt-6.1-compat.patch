@@ -1,0 +1,40 @@
+diff --git a/src/qwt_polar_fitter.cpp b/src/qwt_polar_fitter.cpp
+index 6d9e6d9..3344991 100644
+--- a/src/qwt_polar_fitter.cpp
++++ b/src/qwt_polar_fitter.cpp
+@@ -25,7 +25,7 @@ public:
+    \param stepCount Number of points, that will be inserted between 2 points
+    \sa setStepCount()
+ */
+-QwtPolarFitter::QwtPolarFitter( int stepCount )
++QwtPolarFitter::QwtPolarFitter( int stepCount ) : QwtCurveFitter(QwtCurveFitter::Polygon)
+ {
+     d_data = new PrivateData;
+     d_data->stepCount = stepCount;
+diff --git a/src/qwt_polar_spectrogram.cpp b/src/qwt_polar_spectrogram.cpp
+index 671a87b..2bc5d5a 100644
+--- a/src/qwt_polar_spectrogram.cpp
++++ b/src/qwt_polar_spectrogram.cpp
+@@ -305,12 +305,8 @@ QImage QwtPolarSpectrogram::renderImage(
+     QImage image( rect.size(), d_data->colorMap->format() == QwtColorMap::RGB
+                   ? QImage::Format_ARGB32 : QImage::Format_Indexed8 );
+ 
+-    const QwtInterval intensityRange = d_data->data->interval( Qt::ZAxis );
+-    if ( !intensityRange.isValid() )
+-        return image;
+-
+     if ( d_data->colorMap->format() == QwtColorMap::Indexed )
+-        image.setColorTable( d_data->colorMap->colorTable( intensityRange ) );
++        image.setColorTable( d_data->colorMap->colorTable256());
+ 
+     /*
+      For the moment we only announce the composition of the image by
+@@ -471,7 +467,7 @@ void QwtPolarSpectrogram::renderTile(
+                 const double radius = radialMap.invTransform( r );
+ 
+                 const double value = d_data->data->value( azimuth, radius );
+-                *line++ = d_data->colorMap->colorIndex( intensityRange, value );
++                *line++ = d_data->colorMap->colorIndex(256, intensityRange, value );
+             }
+         }
+     }
