@@ -105,6 +105,10 @@ build_libsigrok() {
 
 	make -j ${JOBS} install
 	DESTDIR=${WORKDIR} make -j ${JOBS} install
+
+	# For some reason, Scopy chokes if these are present in enums.hpp
+	sed -i "s/static const Quantity \* const DIFFERENCE;$//g" ${WORKDIR}/msys64/${MINGW_VERSION}/include/libsigrokcxx/enums.hpp
+	sed -i "s/static const QuantityFlag \* const RELATIVE;$//g" ${WORKDIR}/msys64/${MINGW_VERSION}/include/libsigrokcxx/enums.hpp
 }
 
 build_libsigrokdecode() {
