@@ -113,10 +113,13 @@ build_libsigrok() {
 
 build_libsigrokdecode() {
 	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
-	cd ${WORKDIR}/libsigrokdecode/build-${ARCH}
+	cd ${WORKDIR}/libsigrokdecode
 
 	wget http://sigrok.org/download/source/libsigrokdecode/libsigrokdecode-0.4.1.tar.gz -O- \
 		| tar xz --strip-components=1 -C ${WORKDIR}/libsigrokdecode
+
+	patch -p1 < ${WORKDIR}/sigrokdecode-windows-fix.patch
+	cd build-${ARCH}
 
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
 
@@ -257,7 +260,8 @@ mv ${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwt.dll \
 	${WORKDIR}/msys64/${MINGW_VERSION}/bin
 
 rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc \
-	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc
+	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc \
+	${WORKDIR}/msys64/${MINGW_VERSION}/lib/*.la
 
 tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
 
