@@ -31,8 +31,7 @@ DEPENDENCIES="mingw-w64-${ARCH}-libxml2 \
 	mingw-w64-${ARCH}-libzip \
 	mingw-w64-${ARCH}-glib2 \
 	mingw-w64-${ARCH}-glibmm \
-	mingw-w64-${ARCH}-pkg-config \
-	mingw-w64-${ARCH}-qt5"
+	mingw-w64-${ARCH}-pkg-config"
 
 # Remove dependencies that prevent us from upgrading to GCC 6.2
 pacman -Rs --noconfirm \
@@ -55,6 +54,10 @@ pacman --noconfirm -Sy \
 
 # Install dependencies
 pacman --noconfirm -Sy ${DEPENDENCIES}
+
+# Install an older version of Qt due to uic.exe issues
+wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
+pacman -U --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
