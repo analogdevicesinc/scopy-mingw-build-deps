@@ -70,9 +70,15 @@ build_libiio() {
 
 	mkdir ${WORKDIR}/libiio/build-${ARCH}
 	cd ${WORKDIR}/libiio/build-${ARCH}
+	# Download a 32-bit version of windres.exe
+
+        cd /c
+        wget http://swdownloads.analog.com/cse/build/windres.exe.gz
+        gunzip windres.exe.gz
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
+		-DCMAKE_RC_COMPILER=/c/windres.exe \
 		-DWITH_TESTS:BOOL=OFF \
 		-DWITH_DOC:BOOL=OFF \
 		-DWITH_MATLAB_BINDINGS:BOOL=OFF \
