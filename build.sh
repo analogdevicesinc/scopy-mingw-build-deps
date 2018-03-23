@@ -75,6 +75,7 @@ build_libiio() {
         cd /c
         wget http://swdownloads.analog.com/cse/build/windres.exe.gz
         gunzip windres.exe.gz
+        cd ${WORKDIR}/libiio/build-${ARCH}
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
