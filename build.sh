@@ -21,6 +21,13 @@ AUTOCONF_OPTS="--prefix=/msys64/${MINGW_VERSION} \
 	--enable-shared \
 	--disable-static"
 
+if [ ${ARCH} == "i686" ]
+then
+	RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/c/windres.exe"
+else
+	RC_COMPILER_OPT=""
+fi
+
 DEPENDENCIES="mingw-w64-${ARCH}-libxml2 \
 	mingw-w64-${ARCH}-libusb \
 	mingw-w64-${ARCH}-boost \
@@ -79,7 +86,7 @@ build_libiio() {
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
-		-DCMAKE_RC_COMPILER=/c/windres.exe \
+		${RC_COMPILER_OPT} \
 		-DWITH_TESTS:BOOL=OFF \
 		-DWITH_DOC:BOOL=OFF \
 		-DWITH_MATLAB_BINDINGS:BOOL=OFF \
