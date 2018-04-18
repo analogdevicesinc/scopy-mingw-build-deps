@@ -62,6 +62,10 @@ pacman --noconfirm -Sy \
 
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm-5.0.0-3-any.pkg.tar.xz http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-clang-5.0.0-3-any.pkg.tar.xz      
 
+# Install an older version of icu
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-58.2-3-any.pkg.tar.xz
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-debug-libs-58.2-3-any.pkg.tar.xz
+
 # Install dependencies
 pacman --noconfirm -Sy ${DEPENDENCIES}
 
