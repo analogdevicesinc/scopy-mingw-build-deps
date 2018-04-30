@@ -51,10 +51,11 @@ pacman -Rs --noconfirm \
 # Remove existing file that causes GCC install to fail
 rm /${MINGW_VERSION}/etc/gdbinit
 
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-cmake-3.10.2-1-any.pkg.tar.xz
+
 # Update to GCC 6.2 and install build-time dependencies
 pacman --noconfirm -Sy \
 	mingw-w64-${ARCH}-gcc \
-	mingw-w64-${ARCH}-cmake \
 	mingw-w64-${ARCH}-doxygen \
 	mingw-w64-${ARCH}-swig \
 	autoconf \
