@@ -118,7 +118,7 @@ build_libad9361() {
 }
 
 build_libsigrok() {
-	git clone --depth 1 https://github.com/sschnelle/libsigrok.git ${WORKDIR}/libsigrok
+	git clone --depth 1 https://github.com/sigrokproject/libsigrok.git ${WORKDIR}/libsigrok
 
 	mkdir ${WORKDIR}/libsigrok/build-${ARCH}
 	cd ${WORKDIR}/libsigrok/build-${ARCH}
