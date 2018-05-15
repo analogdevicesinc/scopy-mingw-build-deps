@@ -188,7 +188,7 @@ build_libvolk() {
 }
 
 build_gnuradio() {
-	git clone --depth 1 https://github.com/analogdevicesinc/gnuradio.git -b signal_source_phase ${WORKDIR}/gnuradio
+	git clone --depth 1 https://github.com/analogdevicesinc/gnuradio.git -b scopy ${WORKDIR}/gnuradio
 
 	mkdir ${WORKDIR}/gnuradio/build-${ARCH}
 	cd ${WORKDIR}/gnuradio/build-${ARCH}
