@@ -51,21 +51,19 @@ pacman -Rs --noconfirm \
 # Remove existing file that causes GCC install to fail
 rm /${MINGW_VERSION}/etc/gdbinit
 
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-cmake-3.10.2-1-any.pkg.tar.xz
-
 # Update to GCC 6.2 and install build-time dependencies
 pacman --noconfirm -Sy \
 	mingw-w64-${ARCH}-gcc \
+	mingw-w64-${ARCH}-cmake \
 	mingw-w64-${ARCH}-doxygen \
-	mingw-w64-${ARCH}-swig \
 	autoconf \
 	automake-wrapper
 
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm-5.0.0-3-any.pkg.tar.xz http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-clang-5.0.0-3-any.pkg.tar.xz      
 
 # Install an older version of icu
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-58.2-3-any.pkg.tar.xz
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-debug-libs-58.2-3-any.pkg.tar.xz
+#pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-58.2-3-any.pkg.tar.xz
+#pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-debug-libs-58.2-3-any.pkg.tar.xz
 
 # Install dependencies
 pacman --noconfirm -Sy ${DEPENDENCIES}
@@ -195,15 +193,17 @@ build_gnuradio() {
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
-		-DENABLE_DEFAULT:BOOL=OFF \
-		-DENABLE_GNURADIO_RUNTIME:BOOL=ON \
-		-DENABLE_GR_ANALOG:BOOL=ON \
-		-DENABLE_GR_BLOCKS:BOOL=ON \
-		-DENABLE_GR_FFT:BOOL=ON \
-		-DENABLE_GR_FILTER:BOOL=ON \
+		-DENABLE_GR_DIGITAL:BOOL=OFF \
+		-DENABLE_GR_DTV:BOOL=OFF \
+		-DENABLE_GR_ATSC:BOOL=OFF \
+		-DENABLE_GR_AUDIO:BOOL=OFF \
+		-DENABLE_GR_CHANNELS:BOOL=OFF \
+		-DENABLE_GR_NOAA:BOOL=OFF \
+		-DENABLE_GR_PAGER:BOOL=OFF \
+		-DENABLE_GR_TRELLIS:BOOL=OFF \
+		-DENABLE_GR_VOCODER:BOOL=OFF \
+		-DENABLE_GR_FEC:BOOL=OFF \
 		-DENABLE_INTERNAL_VOLK:BOOL=OFF \
-		-DENABLE_PYTHON:BOOL=ON \
-		-DSWIG_EXECUTABLE:FILEPATH=/${MINGW_VERSION}/bin/swig \
 		${WORKDIR}/gnuradio
 
 	make -j ${JOBS} install
@@ -260,7 +260,6 @@ build_griio() {
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
 		-DCMAKE_CXX_FLAGS="-D_hypot=hypot" \
-		-DSWIG_EXECUTABLE:FILEPATH=/${MINGW_VERSION}/bin/swig \
 		${WORKDIR}/gr-iio
 
 	make -j ${JOBS} install
