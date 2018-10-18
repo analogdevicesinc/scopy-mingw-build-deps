@@ -52,7 +52,7 @@ pacman -Rs --noconfirm \
 rm /${MINGW_VERSION}/etc/gdbinit
 
 # Update to GCC 6.2 and install build-time dependencies
-pacman --noconfirm -Sy \
+pacman --force --noconfirm -Sy \
 	mingw-w64-${ARCH}-gcc \
 	mingw-w64-${ARCH}-cmake \
 	mingw-w64-${ARCH}-doxygen \
@@ -66,11 +66,12 @@ pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm
 #pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-debug-libs-58.2-3-any.pkg.tar.xz
 
 # Install dependencies
-pacman --noconfirm -Sy ${DEPENDENCIES}
+pacman --force --noconfirm -Sy ${DEPENDENCIES}
 
 # Install an older version of Qt due to uic.exe issues
 wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
-pacman -U --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
+pacman -U --force --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-curl-7.61.1-2-any.pkg.tar.xz
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
