@@ -54,10 +54,11 @@ rm /${MINGW_VERSION}/etc/gdbinit
 pacman --force --noconfirm -Sy \
 	mingw-w64-${ARCH}-gcc \
 	mingw-w64-${ARCH}-cmake \
-	mingw-w64-${ARCH}-doxygen \
 	autoconf \
 	automake-wrapper
 
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-doxygen-1.8.14-2-any.pkg.tar.xz
+pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-graphviz-2.40.1-4-any.pkg.tar.xz
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm-5.0.0-3-any.pkg.tar.xz http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-clang-5.0.0-3-any.pkg.tar.xz      
 
 # Install an older version of icu
