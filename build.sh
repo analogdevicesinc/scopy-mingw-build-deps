@@ -78,7 +78,7 @@ pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-libu
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
 
 build_libiio() {
-	git clone --depth 1 https://github.com/analogdevicesinc/libiio.git ${WORKDIR}/libiio
+	git clone --depth 1 --branch v0.15 https://github.com/analogdevicesinc/libiio.git ${WORKDIR}/libiio
 
 	mkdir ${WORKDIR}/libiio/build-${ARCH}
 	cd ${WORKDIR}/libiio/build-${ARCH}
