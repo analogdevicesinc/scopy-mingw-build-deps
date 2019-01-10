@@ -71,7 +71,6 @@ pacman --force --noconfirm -Sy ${DEPENDENCIES}
 # Install an older version of Qt due to uic.exe issues
 wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
 pacman -U --force --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-curl-7.61.1-2-any.pkg.tar.xz
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-libusb-1.0.21-2-any.pkg.tar.xz 
 
 # Fix Qt5 spec files
