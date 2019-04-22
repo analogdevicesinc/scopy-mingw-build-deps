@@ -68,6 +68,10 @@ pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm
 # Install dependencies
 pacman --force --noconfirm -Sy ${DEPENDENCIES}
 
+# Install an older version of boost for gnuradio to use (currently not working with 1.70)
+wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
+pacman -U --force --noconfirm mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
+
 # Install an older version of Qt due to uic.exe issues
 wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
 pacman -U --force --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
