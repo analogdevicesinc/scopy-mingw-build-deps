@@ -69,10 +69,6 @@ pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm
 # Install dependencies
 pacman --force --noconfirm -Sy ${DEPENDENCIES}
 
-# Install an older version of boost for gnuradio to use (currently not working with 1.70)
-wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
-pacman -U --force --noconfirm mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
-
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-libusb-1.0.21-2-any.pkg.tar.xz 
 
 # Install older version of hdf5
