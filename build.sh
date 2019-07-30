@@ -38,7 +38,8 @@ DEPENDENCIES="mingw-w64-${ARCH}-libxml2 \
 	mingw-w64-${ARCH}-glib2 \
 	mingw-w64-${ARCH}-glibmm \
 	mingw-w64-${ARCH}-pkg-config \
-	mingw-w64-${ARCH}-matio"
+	mingw-w64-${ARCH}-matio \
+	mingw-w64-${ARCH}-qt" \
 
 # Remove dependencies that prevent us from upgrading to GCC 6.2
 pacman -Rs --noconfirm \
@@ -68,14 +69,11 @@ pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm
 # Install dependencies
 pacman --force --noconfirm -Sy ${DEPENDENCIES}
 
-# Install an older version of boost for gnuradio to use (currently not working with 1.70)
-wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
-pacman -U --force --noconfirm mingw-w64-${ARCH}-boost-1.69.0-2-any.pkg.tar.xz
-
-# Install an older version of Qt due to uic.exe issues
-wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
-pacman -U --force --noconfirm mingw-w64-${ARCH}-qt5-5.9.1-1-any.pkg.tar.xz
 pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-libusb-1.0.21-2-any.pkg.tar.xz 
+
+# Install older version of hdf5
+wget -q http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-hdf5-1.8.21-2-any.pkg.tar.xz
+pacman -U --force --noconfirm mingw-w64-${ARCH}-hdf5-1.8.21-2-any.pkg.tar.xz
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
