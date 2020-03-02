@@ -1,11 +1,14 @@
 clone_depth: 1
 
+#init:
+#    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 environment:
     matrix:
-        - MINGW_VERSION: mingw32
-          ARCH: i686
-        - MINGW_VERSION: mingw64
-          ARCH: x86_64
+      - MINGW_VERSION: mingw64
+        ARCH: x86_64
+      - MINGW_VERSION: mingw32
+        ARCH: i686
 
 matrix:
     fast_finish: true
@@ -13,5 +16,9 @@ matrix:
 build_script:
     - cd C:\projects\scopy-mingw-build-deps
     - C:\msys64\usr\bin\bash build.sh
-    - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\dependencies.txt
+    - echo "### Push artifacts ... "
+    - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps-pacman.txt
     - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps.tar.xz
+
+#on_finish:
+#      - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

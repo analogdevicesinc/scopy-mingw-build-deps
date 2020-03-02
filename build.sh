@@ -1,21 +1,37 @@
 #!/usr/bin/bash.exe
 
+LIBIIO_BRANCH=master
+LIBAD9361_BRANCH=master
+LIBM2K_BRANCH=master
+GRIIO_BRANCH=upgrade-3.8
+GNURADIO_FORK=analogdevicesinc
+GNURADIO_BRANCH=ming-3.8-clean
+GRSCOPY_BRANCH=master
+GRM2K_BRANCH=master
+QWT_BRANCH=qwt-6.1-multiaxes
+QWTPOLAR_BRANCH=master # not used
+LIBSIGROK_BRANCH=master
+LIBSIGROKDECODE_BRANCH=master #not used
+
+#TODO: make each dep install it's own deps
 # Exit immediately if an error occurs
 set -e
 
 export PATH=/bin:/usr/bin:/${MINGW_VERSION}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32
 
 WORKDIR=${PWD}
-
-JOBS=3
+JOBS=-j3
 
 CC=/${MINGW_VERSION}/bin/${ARCH}-w64-mingw32-gcc.exe
 CXX=/${MINGW_VERSION}/bin/${ARCH}-w64-mingw32-g++.exe
-CMAKE_OPTS="-DCMAKE_BUILD_TYPE=Release \
-	-DCMAKE_INSTALL_PREFIX=/${MINGW_VERSION} \
+CMAKE_OPTS="
 	-DCMAKE_C_COMPILER:FILEPATH=${CC} \
 	-DCMAKE_CXX_COMPILER:FILEPATH=${CXX} \
-	-DPKG_CONFIG_EXECUTABLE:FILEPATH=/${MINGW_VERSION}/bin/pkg-config.exe"
+	-DPKG_CONFIG_EXECUTABLE=/$MINGW_VERSION/bin/pkg-config.exe \
+	-DCMAKE_INSTALL_PREFIX=/${MINGW_VERSION}\
+	-DCMAKE_PREFIX_PATH=/c/msys64/$MINGW_VERSION/lib/cmake \
+	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	"
 AUTOCONF_OPTS="--prefix=/msys64/${MINGW_VERSION} \
 	--host=${ARCH}-w64-mingw32 \
 	--enable-shared \
@@ -28,64 +44,56 @@ else
 	RC_COMPILER_OPT=""
 fi
 
-DEPENDENCIES="mingw-w64-${ARCH}-libxml2 \
-	mingw-w64-${ARCH}-boost \
-	mingw-w64-${ARCH}-fftw \
-	mingw-w64-${ARCH}-libzip \
-	mingw-w64-${ARCH}-python3 \
-	mingw-w64-${ARCH}-fftw \
-	mingw-w64-${ARCH}-libzip \
-	mingw-w64-${ARCH}-glib2 \
-	mingw-w64-${ARCH}-glibmm \
-	mingw-w64-${ARCH}-pkg-config \
-	mingw-w64-${ARCH}-hdf5 \
-	mingw-w64-${ARCH}-matio \
-	mingw-w64-${ARCH}-qt" \
+echo "### Download and installed precompiled GNURadio ... "
+wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION-deps.txt?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/gnuradio-$MINGW_VERSION-deps.txt
+wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION.tar.xz?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/gnuradio-$MINGW_VERSION.tar.xz
+cd $WORKDIR
+tar xJf /c/gnuradio-$MINGW_VERSION.tar.xz
+cd /c
+tar xJf gnuradio-$MINGW_VERSION.tar.xz
 
-# Remove dependencies that prevent us from upgrading to GCC 6.2
-pacman -Rs --noconfirm \
-	mingw-w64-${ARCH}-gcc-ada \
-	mingw-w64-${ARCH}-gcc-fortran \
-	mingw-w64-${ARCH}-gcc-libgfortran \
-	mingw-w64-${ARCH}-gcc-objc
+GNURADIO_DEPS=$(<gnuradio-$MINGW_VERSION-deps.txt)
 
-# Remove existing file that causes GCC install to fail
-rm /${MINGW_VERSION}/etc/gdbinit
+#	mingw-w64-$ARCH-qt \
+PACMAN_SYNC_DEPS="
+	$GNURADIO_DEPS \
+	mingw-w64-$ARCH-libxml2 \
+	mingw-w64-$ARCH-libzip \
+	mingw-w64-$ARCH-boost \
+	mingw-w64-$ARCH-fftw \
+	mingw-w64-$ARCH-libzip \
+	mingw-w64-$ARCH-glib2 \
+	mingw-w64-$ARCH-glibmm \
+	mingw-w64-$ARCH-matio \
+	mingw-w64-$ARCH-hdf5 \
+	mingw-w64-$ARCH-doxygen\
+"
 
-# Update to GCC 6.2 and install build-time dependencies
-pacman --force --noconfirm -Sy \
-	mingw-w64-${ARCH}-gcc \
-	mingw-w64-${ARCH}-cmake \
-	autoconf \
-	automake-wrapper
+PACMAN_REPO_DEPS="
+http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-qt5-5.13.2-1-any.pkg.tar.xz \
+http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz\
+"
 
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-doxygen-1.8.14-2-any.pkg.tar.xz
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-graphviz-2.40.1-4-any.pkg.tar.xz
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-llvm-5.0.0-3-any.pkg.tar.xz http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-clang-5.0.0-3-any.pkg.tar.xz      
-
-# Install an older version of icu
-#pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-58.2-3-any.pkg.tar.xz
-#pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-icu-debug-libs-58.2-3-any.pkg.tar.xz
-
-# Install dependencies
-pacman --force --noconfirm -Sy ${DEPENDENCIES}
-
-pacman -U --noconfirm http://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-libusb-1.0.21-2-any.pkg.tar.xz 
+echo "### Installing dependencies ... "
+pacman --noconfirm -Sy $PACMAN_SYNC_DEPS
+pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
 
 build_libiio() {
-	git clone --depth 1 https://github.com/analogdevicesinc/libiio.git ${WORKDIR}/libiio
+	echo "### Building libiio - branch $LIBIIO_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/libiio.git -b $LIBIIO_BRANCH ${WORKDIR}/libiio
 
 	mkdir ${WORKDIR}/libiio/build-${ARCH}
 	cd ${WORKDIR}/libiio/build-${ARCH}
 	# Download a 32-bit version of windres.exe
 
-        cd /c
-        wget http://swdownloads.analog.com/cse/build/windres.exe.gz
-        gunzip windres.exe.gz
-        cd ${WORKDIR}/libiio/build-${ARCH}
+    cd /c
+    wget http://swdownloads.analog.com/cse/build/windres.exe.gz
+    gunzip windres.exe.gz
+    cd ${WORKDIR}/libiio/build-${ARCH}
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
@@ -97,12 +105,36 @@ build_libiio() {
 		-DPYTHON_BINDINGS:BOOL=OFF \
 		${WORKDIR}/libiio
 
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
+	make ${JOBS} install
+	DESTDIR=${WORKDIR} make ${JOBS} install
+}
+
+build_libm2k() {
+	echo "### Building libm2k - branch $LIBM2K_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/libm2k.git -b $LIBM2K_BRANCH ${WORKDIR}/libm2k
+
+	mkdir ${WORKDIR}/libm2k/build-${ARCH}
+	cd ${WORKDIR}/libm2k/build-${ARCH}
+
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		-DENABLE_PYTHON=OFF\
+		-DENABLE_CSHARP=OFF\
+		-DENABLE_EXAMPLES=OFF\
+		-DENABLE_TOOLS=OFF\
+		-DINSTALL_UDEV_RULES=OFF\
+		${WORKDIR}/libm2k
+
+	make ${JOBS} install
+	DESTDIR=${WORKDIR} make ${JOBS} install
+
 }
 
 build_libad9361() {
-	git clone --depth 1 https://github.com/analogdevicesinc/libad9361-iio.git ${WORKDIR}/libad9361
+	echo "### Building libad9361 - branch $LIBAD9361_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/libad9361-iio.git -b $LIBAD9361_BRANCH ${WORKDIR}/libad9361
 
 	mkdir ${WORKDIR}/libad9361/build-${ARCH}
 	cd ${WORKDIR}/libad9361/build-${ARCH}
@@ -111,12 +143,63 @@ build_libad9361() {
 		${CMAKE_OPTS} \
 		${WORKDIR}/libad9361
 
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
+}
+
+build_griio() {
+	echo "### Building gr-iio - branch $GRIIO_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/gr-iio.git -b $GRIIO_BRANCH ${WORKDIR}/gr-iio
+
+	mkdir ${WORKDIR}/gr-iio/build-${ARCH}
+	cd ${WORKDIR}/gr-iio/build-${ARCH}
+
+	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		-DCMAKE_CXX_FLAGS="-D_hypot=hypot" \
+		${WORKDIR}/gr-iio
+
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
+}
+
+build_grm2k() {
+	echo "### Building gr-m2k - branch $GRM2K_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/gr-m2k.git -b $GRM2K_BRANCH ${WORKDIR}/gr-m2k
+	mkdir ${WORKDIR}/gr-m2k/build-${ARCH}
+	cd ${WORKDIR}/gr-m2k/build-${ARCH}
+
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		${WORKDIR}/gr-m2k
+
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
+
+}
+
+build_grscopy() {
+	echo "### Building gr-scopy - branch $GRSCOPY_BRANCH"
+
+	git clone --depth 1 https://github.com/analogdevicesinc/gr-scopy.git -b $GRSCOPY_BRANCH ${WORKDIR}/gr-scopy
+	mkdir ${WORKDIR}/gr-scopy/build-${ARCH}
+	cd ${WORKDIR}/gr-scopy/build-${ARCH}
+
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		${WORKDIR}/gr-scopy
+
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
 }
 
 build_libsigrok() {
-	git clone --depth 1 https://github.com/sigrokproject/libsigrok.git ${WORKDIR}/libsigrok
+	echo "### Building libsigrok - branch $LIBSIGROK_BRANCH"
+
+	git clone --depth 1 https://github.com/sigrokproject/libsigrok.git -b $LIBSIGROK_BRANCH ${WORKDIR}/libsigrok
 
 	mkdir ${WORKDIR}/libsigrok/build-${ARCH}
 	cd ${WORKDIR}/libsigrok/build-${ARCH}
@@ -126,8 +209,8 @@ build_libsigrok() {
 		--without-libusb \
 		--enable-all-drivers=no
 
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
 
 	# For some reason, Scopy chokes if these are present in enums.hpp
 	sed -i "s/static const Quantity \* const DIFFERENCE;$//g" ${WORKDIR}/msys64/${MINGW_VERSION}/include/libsigrokcxx/enums.hpp
@@ -135,6 +218,8 @@ build_libsigrok() {
 }
 
 build_libsigrokdecode() {
+	echo "### Building libsigrokdecode - branch $LIBSIGROKDECODE_BRANCH"
+
 	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
 	cd ${WORKDIR}/libsigrokdecode
 
@@ -146,72 +231,14 @@ build_libsigrokdecode() {
 
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
 
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
-}
-
-build_markdown() {
-	mkdir -p ${WORKDIR}/markdown
-	cd ${WORKDIR}/markdown
-
-	wget https://pypi.python.org/packages/1d/25/3f6d2cb31ec42ca5bd3bfbea99b63892b735d76e26f20dd2dcc34ffe4f0d/Markdown-2.6.8.tar.gz -O- \
-		| tar xz --strip-components=1 -C ${WORKDIR}/markdown
-
-	python2 setup.py build
-	python2 setup.py install
-}
-
-build_cheetah() {
-	mkdir -p ${WORKDIR}/cheetah
-	cd ${WORKDIR}/cheetah
-
-	wget https://pypi.python.org/packages/cd/b0/c2d700252fc251e91c08639ff41a8a5203b627f4e0a2ae18a6b662ab32ea/Cheetah-2.4.4.tar.gz -O- \
-		| tar xz --strip-components=1 -C ${WORKDIR}/cheetah
-
-	python2 setup.py build
-	python2 setup.py install
-}
-
-build_libvolk() {
-	mkdir -p ${WORKDIR}/libvolk/build-${ARCH}
-	cd ${WORKDIR}/libvolk/build-${ARCH}
-
-	wget http://libvolk.org/releases/volk-1.3.tar.gz -O- \
-		| tar xz --strip-components=1 -C ${WORKDIR}/libvolk
-
-	cmake -G 'Unix Makefiles' ${CMAKE_OPTS} ${WORKDIR}/libvolk
-
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
-}
-
-build_gnuradio() {
-	git clone --depth 1 https://github.com/analogdevicesinc/gnuradio.git -b scopy ${WORKDIR}/gnuradio
-
-	mkdir ${WORKDIR}/gnuradio/build-${ARCH}
-	cd ${WORKDIR}/gnuradio/build-${ARCH}
-
-	cmake -G 'Unix Makefiles' \
-		${CMAKE_OPTS} \
-		-DENABLE_GR_DIGITAL:BOOL=OFF \
-		-DENABLE_GR_DTV:BOOL=OFF \
-		-DENABLE_GR_ATSC:BOOL=OFF \
-		-DENABLE_GR_AUDIO:BOOL=OFF \
-		-DENABLE_GR_CHANNELS:BOOL=OFF \
-		-DENABLE_GR_NOAA:BOOL=OFF \
-		-DENABLE_GR_PAGER:BOOL=OFF \
-		-DENABLE_GR_TRELLIS:BOOL=OFF \
-		-DENABLE_GR_VOCODER:BOOL=OFF \
-		-DENABLE_GR_FEC:BOOL=OFF \
-		-DENABLE_INTERNAL_VOLK:BOOL=OFF \
-		${WORKDIR}/gnuradio
-
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
+	make $JOBS install
+	DESTDIR=${WORKDIR} make $JOBS install
 }
 
 build_qwt() {
-	git clone --depth 1 https://github.com/osakared/qwt.git -b qwt-6.1-multiaxes ${WORKDIR}/qwt
+	echo "### Building qwt - branch $QWT_BRANCH"
+
+	git clone --depth 1 https://github.com/osakared/qwt.git -b $QWT_BRANCH ${WORKDIR}/qwt
 	cd ${WORKDIR}/qwt
 
 	# Disable components that we won't build
@@ -224,11 +251,12 @@ build_qwt() {
 
 	cd ${WORKDIR}/qwt/src
 	qmake
-	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" -j ${JOBS} -f Makefile.Release install
-	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" -j ${JOBS} -f Makefile.Release install
+	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
+	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
 }
 
 build_qwtpolar() {
+	echo "### Building qwtpolar - branch $QWTPOLAR_BRANCH"
 	mkdir -p ${WORKDIR}/qwtpolar
 	cd ${WORKDIR}/qwtpolar
 
@@ -246,33 +274,16 @@ build_qwtpolar() {
 
 	cd ${WORKDIR}/qwtpolar/src
 	qmake LIBS+="-lqwt"
-	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" -j ${JOBS} -f Makefile.Release install
-	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" -j ${JOBS} -f Makefile.Release install
+	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
+	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
 }
 
-build_griio() {
-	git clone --depth 1 https://github.com/analogdevicesinc/gr-iio.git ${WORKDIR}/gr-iio
-
-	mkdir ${WORKDIR}/gr-iio/build-${ARCH}
-	cd ${WORKDIR}/gr-iio/build-${ARCH}
-
-	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
-	cmake -G 'Unix Makefiles' \
-		${CMAKE_OPTS} \
-		-DCMAKE_CXX_FLAGS="-D_hypot=hypot" \
-		${WORKDIR}/gr-iio
-
-	make -j ${JOBS} install
-	DESTDIR=${WORKDIR} make -j ${JOBS} install
-}
-
-build_markdown
-build_cheetah
-build_libvolk
-build_gnuradio
 build_libiio
 build_libad9361
+build_libm2k
 build_griio
+build_grscopy
+build_grm2k
 build_qwt
 build_qwtpolar
 build_libsigrok
@@ -287,6 +298,7 @@ rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc \
 	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc \
 	${WORKDIR}/msys64/${MINGW_VERSION}/lib/*.la
 
+echo "### Creating archive ... "
 tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
 
-echo -n ${DEPENDENCIES} > ${WORKDIR}/dependencies.txt
+echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
