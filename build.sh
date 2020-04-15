@@ -62,6 +62,7 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-boost \
 	mingw-w64-$ARCH-fftw \
 	mingw-w64-$ARCH-libzip \
+	mingw-w64-$ARCH-libffi \
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
 	mingw-w64-$ARCH-matio \
