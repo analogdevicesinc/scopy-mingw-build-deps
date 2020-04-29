@@ -45,14 +45,14 @@ else
 fi
 
 echo "### Download and installed precompiled GNURadio ... "
-wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION-deps.txt?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/gnuradio-$MINGW_VERSION-deps.txt
-wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION.tar.xz?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /c/gnuradio-$MINGW_VERSION.tar.xz
+wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION-deps.txt?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/gnuradio-$MINGW_VERSION-deps.txt
+wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION.tar.xz?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/gnuradio-$MINGW_VERSION.tar.xz
 cd $WORKDIR
-tar xJf /c/gnuradio-$MINGW_VERSION.tar.xz
+tar xJf /tmp/gnuradio-$MINGW_VERSION.tar.xz
 cd /c
-tar xJf gnuradio-$MINGW_VERSION.tar.xz
+tar xJf /tmp/gnuradio-$MINGW_VERSION.tar.xz
 
-GNURADIO_DEPS=$(<gnuradio-$MINGW_VERSION-deps.txt)
+GNURADIO_DEPS=$(</tmp/gnuradio-$MINGW_VERSION-deps.txt)
 
 #	mingw-w64-$ARCH-qt \
 PACMAN_SYNC_DEPS="
