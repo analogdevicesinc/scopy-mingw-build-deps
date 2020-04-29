@@ -43,7 +43,7 @@ then
 else
 	RC_COMPILER_OPT=""
 fi
-
+install_deps() {
 echo "### Download and installed precompiled GNURadio ... "
 wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION-deps.txt?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/gnuradio-$MINGW_VERSION-deps.txt
 wget "https://ci.appveyor.com/api/projects/$GNURADIO_FORK/gnuradio/artifacts/gnuradio-$MINGW_VERSION.tar.xz?branch=$GNURADIO_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/gnuradio-$MINGW_VERSION.tar.xz
@@ -279,6 +279,7 @@ build_qwtpolar() {
 	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
 }
 
+install_deps
 build_libiio
 build_libad9361
 build_libm2k
