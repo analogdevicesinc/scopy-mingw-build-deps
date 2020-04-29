@@ -65,8 +65,6 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-libffi \
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
-	mingw-w64-$ARCH-matio \
-	mingw-w64-$ARCH-hdf5 \
 	mingw-w64-$ARCH-doxygen\
 "
 
