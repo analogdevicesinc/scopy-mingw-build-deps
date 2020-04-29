@@ -66,10 +66,10 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
 	mingw-w64-$ARCH-doxygen\
+	mingw-w64-$ARCH-qt5 \
 "
 
 PACMAN_REPO_DEPS="
-http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-qt5-5.13.2-1-any.pkg.tar.xz \
 http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz\
 "
 
@@ -79,6 +79,7 @@ pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
+}
 
 build_libiio() {
 	echo "### Building libiio - branch $LIBIIO_BRANCH"
@@ -89,7 +90,7 @@ build_libiio() {
 	cd ${WORKDIR}/libiio/build-${ARCH}
 	# Download a 32-bit version of windres.exe
 
-    cd /c
+    cd /c 
     wget http://swdownloads.analog.com/cse/build/windres.exe.gz
     gunzip windres.exe.gz
     cd ${WORKDIR}/libiio/build-${ARCH}
@@ -302,3 +303,5 @@ echo "### Creating archive ... "
 tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
 
 echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
+
+
