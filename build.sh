@@ -10,8 +10,7 @@ GRSCOPY_BRANCH=master
 GRM2K_BRANCH=master
 QWT_BRANCH=qwt-6.1-multiaxes
 QWTPOLAR_BRANCH=master # not used
-LIBSIGROK_BRANCH=master
-LIBSIGROKDECODE_BRANCH=master #not used
+LIBSIGROKDECODE_BRANCH=master
 
 #TODO: make each dep install it's own deps
 # Exit immediately if an error occurs
@@ -90,10 +89,10 @@ build_libiio() {
 	cd ${WORKDIR}/libiio/build-${ARCH}
 	# Download a 32-bit version of windres.exe
 
-    cd /c 
-    wget http://swdownloads.analog.com/cse/build/windres.exe.gz
-    gunzip windres.exe.gz
-    cd ${WORKDIR}/libiio/build-${ARCH}
+	cd /c
+	wget http://swdownloads.analog.com/cse/build/windres.exe.gz
+	gunzip windres.exe.gz
+	cd ${WORKDIR}/libiio/build-${ARCH}
 
 	cmake -G 'Unix Makefiles' \
 		${CMAKE_OPTS} \
@@ -196,41 +195,18 @@ build_grscopy() {
 	DESTDIR=${WORKDIR} make $JOBS install
 }
 
-build_libsigrok() {
-	echo "### Building libsigrok - branch $LIBSIGROK_BRANCH"
-
-	git clone --depth 1 https://github.com/sigrokproject/libsigrok.git -b $LIBSIGROK_BRANCH ${WORKDIR}/libsigrok
-
-	mkdir ${WORKDIR}/libsigrok/build-${ARCH}
-	cd ${WORKDIR}/libsigrok/build-${ARCH}
-
-	../autogen.sh
-	CPPFLAGS="-DLIBSIGROK_EXPORT=1" ../configure ${AUTOCONF_OPTS} \
-		--without-libusb \
-		--enable-all-drivers=no
-
-	make $JOBS install
-	DESTDIR=${WORKDIR} make $JOBS install
-
-	# For some reason, Scopy chokes if these are present in enums.hpp
-	sed -i "s/static const Quantity \* const DIFFERENCE;$//g" ${WORKDIR}/msys64/${MINGW_VERSION}/include/libsigrokcxx/enums.hpp
-	sed -i "s/static const QuantityFlag \* const RELATIVE;$//g" ${WORKDIR}/msys64/${MINGW_VERSION}/include/libsigrokcxx/enums.hpp
-}
-
 build_libsigrokdecode() {
 	echo "### Building libsigrokdecode - branch $LIBSIGROKDECODE_BRANCH"
+	git clone --depth 1 https://github.com/sigrokproject/libsigrokdecode.git -b $LIBSIGROKDECODE_BRANCH ${WORKDIR}/libsigrokdecode
 
 	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
 	cd ${WORKDIR}/libsigrokdecode
 
-	wget http://sigrok.org/download/source/libsigrokdecode/libsigrokdecode-0.4.1.tar.gz -O- \
-		| tar xz --strip-components=1 -C ${WORKDIR}/libsigrokdecode
-
 	patch -p1 < ${WORKDIR}/sigrokdecode-windows-fix.patch
+	./autogen.sh
 	cd build-${ARCH}
 
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
-
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
 }
@@ -287,7 +263,6 @@ build_grscopy
 build_grm2k
 build_qwt
 build_qwtpolar
-build_libsigrok
 build_libsigrokdecode
 
 # Fix DLLs installed in the wrong path
