@@ -59,7 +59,6 @@ PACMAN_SYNC_DEPS="
 	$GNURADIO_DEPS \
 	mingw-w64-$ARCH-libxml2 \
 	mingw-w64-$ARCH-libzip \
-	mingw-w64-$ARCH-boost \
 	mingw-w64-$ARCH-fftw \
 	mingw-w64-$ARCH-libzip \
 	mingw-w64-$ARCH-libffi \
@@ -70,11 +69,12 @@ PACMAN_SYNC_DEPS="
 "
 
 PACMAN_REPO_DEPS="
-http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz\
+http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
+http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
 "
 
 echo "### Installing dependencies ... "
-pacman --noconfirm -Sy $PACMAN_SYNC_DEPS
+pacman --noconfirm --needed -Sy $PACMAN_SYNC_DEPS
 pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files
