@@ -65,12 +65,12 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
 	mingw-w64-$ARCH-doxygen\
-	mingw-w64-$ARCH-qt5 \
 "
 
 PACMAN_REPO_DEPS="
 http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
 http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
+http://repo.msys2.org/mingw/$ARCH/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
 "
 
 echo "### Installing dependencies ... "
