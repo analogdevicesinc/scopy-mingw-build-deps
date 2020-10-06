@@ -12,6 +12,7 @@ QWT_BRANCH=qwt-6.1-multiaxes-scopy
 QWTPOLAR_BRANCH=master # not used
 LIBSIGROKDECODE_BRANCH=master
 LIBTINYIIOD_BRANCH=master
+GLOG_BRANCH=master
 
 BUILD_STATUS_FILE=/tmp/scopy-mingw-build-status
 touch $BUILD_STATUS_FILE
@@ -136,6 +137,25 @@ build_libiio() {
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
+build_glog() {
+	echo "### Building glog - branch $GLOG_BRANCH"
+
+	git clone --depth 1 https://github.com/teoperisanu/glog.git -b $GLOG_BRANCH ${WORKDIR}/glog
+
+	mkdir ${WORKDIR}/glog/build-${ARCH}
+	cd ${WORKDIR}/glog/build-${ARCH}
+
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		-DWITH_GFLAGS=OFF \
+		-DBUILD_SHARED_LIBS=ON \
+		${WORKDIR}/glog
+
+	make ${JOBS} install
+	DESTDIR=${WORKDIR} make ${JOBS} install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
+}
+
 build_libm2k() {
 	echo "### Building libm2k - branch $LIBM2K_BRANCH"
 	CURRENT_BUILD=libm2k
@@ -151,6 +171,7 @@ build_libm2k() {
 		-DENABLE_CSHARP=OFF\
 		-DENABLE_EXAMPLES=OFF\
 		-DENABLE_TOOLS=OFF\
+		-DENABLE_LOG=ON\
 		-DINSTALL_UDEV_RULES=OFF\
 		${WORKDIR}/libm2k
 
@@ -307,6 +328,7 @@ build_libtinyiiod() {
 }
 
 install_deps
+build_glog
 build_libiio
 build_libad9361
 build_libm2k
