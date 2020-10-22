@@ -40,7 +40,7 @@ if [ ${ARCH} == "i686" ]
 then
 	RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/c/windres.exe"
 else
-	RC_COMPILER_OPT=""
+	RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/c/msys64/mingw64/bin/windres.exe"
 fi
 install_deps() {
 echo "### Download and installed precompiled GNURadio ... "
