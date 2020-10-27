@@ -15,57 +15,25 @@ mkdir -p old_msys_deps_$MINGW_VERSION && cd old_msys_deps_$MINGW_VERSION
 
 PAK_TYPE="mingw"
 PAK_ARCH="any"
-for PAK in $PACKAGES
-do
-	PAK_VER="$PAK"_VER
-	if [[ $PAK_TYPE == "mingw" ]]; then
-		PAK_NAME=mingw-w64-$ARCH-$PAK-${!PAK_VER}-$PAK_ARCH
-	else
-		PAK_NAME=$PAK-${!PAK_VER}-$PAK_ARCH
-	fi
 
-	for MSYS_MIRROR in $mirrorlist
-	do
-		EXT="xz"
-		URL=$MSYS_MIRROR/$PAK_TYPE/$ARCH/$PAK_NAME.pkg.tar.$EXT
-		if curl --output /dev/null --silent --head --fail "$URL"; then
-			echo "FOUND: " $PAK-${!PAK_VER} " on " $MSYS_MIRROR
-			wget "$URL"
-			break
-		else
-			EXT="zst"
-			URL=$MSYS_MIRROR/$PAK_TYPE/$ARCH/$PAK_NAME.pkg.tar.$EXT
-			if curl --output /dev/null --silent --head --fail "$URL"; then
-				echo "FOUND: " $PAK-${!PAK_VER} " on " $MSYS_MIRROR
-				wget "$URL"
-				break
-			else
-				echo "NOT FOUND: " $PAK-${!PAK_VER} " on " $MSYS_MIRROR " Trying other mirrors."
-			fi
-		fi
-	done
-done
-
-
-#TEMP TODO:remove
-#These are temporary until some MSYS2 signature issues get fixed
-TEMP_URLS="http://repo.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz \
-http://repo.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig \
-http://repo.msys2.org/msys/x86_64/pacman-5.2.2-1-x86_64.pkg.tar.xz"
-
-for URL in $TEMP_URLS
-do
-	for MSYS_MIRROR in $mirrorlist
-	do
-		if curl --output /dev/null --silent --head --fail "$URL"; then
-			echo "FOUND: " $URL " on " $MSYS_MIRROR
-			wget "$URL"
-			break
-		else
-			echo "NOT FOUND: " $PAK-${!PAK_VER} " on " $MSYS_MIRROR " Trying other mirrors."
-		fi
-	done
-done
-
+## TEMP FIX / HACK
+CUR_PWD=$(pwd)
+mkdir -p /temp
+cd /temp
+wget https://ci.appveyor.com/api/buildjobs/f5pekeileekr4ohg/artifacts/old-msys-build-deps-mingw64.tar.xz
+wget https://ci.appveyor.com/api/buildjobs/csb4ln2pv39xpjbd/artifacts/old-msys-build-deps-mingw32.tar.xz
+cd $CUR_PWD
 cd ..
+tar xvf /temp/old-msys-build-deps-$MINGW_VERSION.tar.xz 
+pwd
+echo $CUR_PWD
+cd $CUR_PWD
+ls
+ls -la
+# END HACK
+rm -rf old-msys-build-deps-mingw64.tar.xz
+rm -rf old-msys-build-deps-mingw32.tar.xz
+echo deleted archives
+cd .. 
 tar cavf old-msys-build-deps-$MINGW_VERSION.tar.xz old_msys_deps_$MINGW_VERSION
+cd $CUR_PWD

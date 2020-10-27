@@ -72,6 +72,7 @@ ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pk
 ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
 ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
 "
+ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 
 echo "### Installing dependencies ... "
 pacman --noconfirm --needed -Sy $PACMAN_SYNC_DEPS

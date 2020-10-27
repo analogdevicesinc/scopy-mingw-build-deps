@@ -3,6 +3,7 @@ clone_depth: 1
 #init:
 #    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
+image: Visual Studio 2019
 environment:
     matrix:
       - MINGW_VERSION: mingw64
@@ -10,17 +11,11 @@ environment:
       - MINGW_VERSION: mingw32
         ARCH: i686
 
-build_script:
+install:
+    - cmd:  C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syu"
     - cd C:\projects\scopy-mingw-build-deps
     - C:\msys64\usr\bin\bash download_old_deps.sh %ARCH% %MINGW_VERSION%
-    - cmd: C:\msys64\usr\bin\bash -lc "cd /c/projects/scopy-mingw-build-deps/old_msys_deps_%MINGW_VERSION%; pacman --noconfirm -U pacman-5.2.2-1-x86_64.pkg.tar.xz"
-   # - cmd: C:\msys64\usr\bin\bash -lc "curl -O http://repo.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
-   # - cmd: C:\msys64\usr\bin\bash -lc "curl -O http://repo.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig"
-    - cmd: C:\msys64\usr\bin\bash -lc "cd /c/projects/scopy-mingw-build-deps/old_msys_deps_%MINGW_VERSION%; pacman-key --verify msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz{.sig,}"
-    - cmd: C:\msys64\usr\bin\bash -lc "pacman-key --populate"
-    - cmd: C:\msys64\usr\bin\bash -lc "cd /c/projects/scopy-mingw-build-deps/old_msys_deps_%MINGW_VERSION%; pacman --noconfirm -U msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
-    - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syu"
-
+build_script:
     - C:\msys64\usr\bin\bash build.sh
     - echo "### Push artifacts ... "
     - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps-pacman.txt
