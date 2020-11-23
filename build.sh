@@ -12,11 +12,14 @@ QWT_BRANCH=qwt-6.1-multiaxes
 QWTPOLAR_BRANCH=master # not used
 LIBSIGROKDECODE_BRANCH=master
 
+BUILD_STATUS_FILE=/tmp/scopy-mingw-build-status
+touch $BUILD_STATUS_FILE
+
 #TODO: make each dep install it's own deps
 # Exit immediately if an error occurs
 set -e
 
-export PATH=/bin:/usr/bin:/${MINGW_VERSION}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32
+export PATH=/bin:/usr/bin:/${MINGW_VERSION}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent
 
 WORKDIR=${PWD}
 JOBS=-j3
@@ -72,6 +75,25 @@ ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pk
 ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
 ${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
 "
+
+echo "Built scopy-mingw-build-deps on Appveyor" >> $BUILD_STATUS_FILE
+echo "on $(date)" >> $BUILD_STATUS_FILE
+echo "url: ${APPVEYOR_URL}" >> $BUILD_STATUS_FILE
+echo "api_url: ${APPVEYOR_API_URL}" >> $BUILD_STATUS_FILE
+echo "acc_name: ${APPVEYOR_ACCOUNT_NAME}" >> $BUILD_STATUS_FILE
+echo "prj_name: ${APPVEYOR_PROJECT_NAME}" >> $BUILD_STATUS_FILE
+echo "build_id: ${APPVEYOR_BUILD_ID}" >> $BUILD_STATUS_FILE
+echo "build_nr: ${APPVEYOR_BUILD_NUMBER}" >> $BUILD_STATUS_FILE
+echo "build_version: ${APPVEYOR_BUILD_VERSION}" >> $BUILD_STATUS_FILE
+echo "job_id: ${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
+echo "job_name: ${APPVEYOR_JOB_NAME}" >> $BUILD_STATUS_FILE
+echo "job_nr: ${APPVEYOR_JOB_NUMBER}" >> $BUILD_STATUS_FILE
+echo "job_link:  ${APPVEYOR_URL}/project/${APPVEYOR_ACCOUNT_NAME}/${APPVEYOR_PROJECT_NAME}/builds/${APPVEYOR_BUILD_ID}/job/${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
+
+echo $BUILD_STATUS_FILE
+
+echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
+echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
 ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 
 echo "### Installing dependencies ... "
@@ -83,6 +105,7 @@ sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5
 }
 
 build_libiio() {
+	CURRENT_BUILD=libiio
 	echo "### Building libiio - branch $LIBIIO_BRANCH"
 
 	git clone --depth 1 https://github.com/analogdevicesinc/libiio.git -b $LIBIIO_BRANCH ${WORKDIR}/libiio
@@ -107,10 +130,12 @@ build_libiio() {
 
 	make ${JOBS} install
 	DESTDIR=${WORKDIR} make ${JOBS} install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_libm2k() {
 	echo "### Building libm2k - branch $LIBM2K_BRANCH"
+	CURRENT_BUILD=libm2k
 
 	git clone --depth 1 https://github.com/analogdevicesinc/libm2k.git -b $LIBM2K_BRANCH ${WORKDIR}/libm2k
 
@@ -129,11 +154,13 @@ build_libm2k() {
 	make ${JOBS} install
 	DESTDIR=${WORKDIR} make ${JOBS} install
 
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_libad9361() {
 	echo "### Building libad9361 - branch $LIBAD9361_BRANCH"
 
+	CURRENT_BUILD=libad9361
 	git clone --depth 1 https://github.com/analogdevicesinc/libad9361-iio.git -b $LIBAD9361_BRANCH ${WORKDIR}/libad9361
 
 	mkdir ${WORKDIR}/libad9361/build-${ARCH}
@@ -145,11 +172,12 @@ build_libad9361() {
 
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_griio() {
 	echo "### Building gr-iio - branch $GRIIO_BRANCH"
-
+	CURRENT_BUILD=gr-iio
 	git clone --depth 1 https://github.com/analogdevicesinc/gr-iio.git -b $GRIIO_BRANCH ${WORKDIR}/gr-iio
 
 	mkdir ${WORKDIR}/gr-iio/build-${ARCH}
@@ -163,11 +191,12 @@ build_griio() {
 
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_grm2k() {
 	echo "### Building gr-m2k - branch $GRM2K_BRANCH"
-
+	CURRENT_BUILD=gr-m2k
 	git clone --depth 1 https://github.com/analogdevicesinc/gr-m2k.git -b $GRM2K_BRANCH ${WORKDIR}/gr-m2k
 	mkdir ${WORKDIR}/gr-m2k/build-${ARCH}
 	cd ${WORKDIR}/gr-m2k/build-${ARCH}
@@ -179,11 +208,12 @@ build_grm2k() {
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
 
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_grscopy() {
 	echo "### Building gr-scopy - branch $GRSCOPY_BRANCH"
-
+	CURRENT_BUILD=gr-scopy
 	git clone --depth 1 https://github.com/analogdevicesinc/gr-scopy.git -b $GRSCOPY_BRANCH ${WORKDIR}/gr-scopy
 	mkdir ${WORKDIR}/gr-scopy/build-${ARCH}
 	cd ${WORKDIR}/gr-scopy/build-${ARCH}
@@ -194,10 +224,12 @@ build_grscopy() {
 
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_libsigrokdecode() {
 	echo "### Building libsigrokdecode - branch $LIBSIGROKDECODE_BRANCH"
+	CURRENT_BUILD=libsigrokdecode
 	git clone --depth 1 https://github.com/sigrokproject/libsigrokdecode.git -b $LIBSIGROKDECODE_BRANCH ${WORKDIR}/libsigrokdecode
 
 	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
@@ -210,11 +242,12 @@ build_libsigrokdecode() {
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
 	make $JOBS install
 	DESTDIR=${WORKDIR} make $JOBS install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
-
+	CURRENT_BUILD=qwt
 	git clone --depth 1 https://github.com/osakared/qwt.git -b $QWT_BRANCH ${WORKDIR}/qwt
 	cd ${WORKDIR}/qwt
 
@@ -230,10 +263,12 @@ build_qwt() {
 	qmake
 	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
 	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 }
 
 build_qwtpolar() {
 	echo "### Building qwtpolar - branch $QWTPOLAR_BRANCH"
+	CURRENT_BUILD=qwtpolar
 	mkdir -p ${WORKDIR}/qwtpolar
 	cd ${WORKDIR}/qwtpolar
 
@@ -253,6 +288,7 @@ build_qwtpolar() {
 	qmake LIBS+="-lqwt"
 	make INSTALL_ROOT="/c/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
 	make INSTALL_ROOT="${WORKDIR}/msys64/${MINGW_VERSION}" $JOBS -f Makefile.Release install
+	echo "$CURRENT_BUILD - v1.1.1" >> $BUILD_STATUS_FILE
 }
 
 install_deps
@@ -266,6 +302,12 @@ build_qwt
 build_qwtpolar
 build_libsigrokdecode
 
+echo "" >> $BUILD_STATUS_FILE
+echo "pacman -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
+pacman -Qe >> $BUILD_STATUS_FILE
+#echo "pacman -Qm output - all packages from nonsync sources" >> $BUILD_STATUS_FILE
+#pacman -Qm >> $BUILD_STATUS_FILE
+
 # Fix DLLs installed in the wrong path
 mv ${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwt.dll \
 	${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll \
@@ -277,7 +319,9 @@ rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc \
 
 echo "### Creating archive ... "
 tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
-
+appveyor PushArtifact $BUILD_STATUS_FILE
+pacman -Q > /tmp/AllInstalledPackages
+appveyor PushArtifact /tmp/AllInstalledPackages
 echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 
 
