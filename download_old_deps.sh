@@ -20,8 +20,8 @@ PAK_ARCH="any"
 CUR_PWD=$(pwd)
 mkdir -p /temp
 cd /temp
-wget https://ci.appveyor.com/api/buildjobs/f5pekeileekr4ohg/artifacts/old-msys-build-deps-mingw64.tar.xz
-wget https://ci.appveyor.com/api/buildjobs/csb4ln2pv39xpjbd/artifacts/old-msys-build-deps-mingw32.tar.xz
+wget https://swdownloads.analog.com/cse/scopydeps/old-msys-build-deps-mingw64.tar.xz
+wget https://swdownloads.analog.com/cse/scopydeps/old-msys-build-deps-mingw32.tar.xz
 cd $CUR_PWD
 cd ..
 tar xvf /temp/old-msys-build-deps-$MINGW_VERSION.tar.xz 
