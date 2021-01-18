@@ -5,10 +5,10 @@ LIBAD9361_BRANCH=master
 LIBM2K_BRANCH=master
 GRIIO_BRANCH=upgrade-3.8
 GNURADIO_FORK=analogdevicesinc
-GNURADIO_BRANCH=ming-3.8-clean-rebase-test
+GNURADIO_BRANCH=scopy
 GRSCOPY_BRANCH=master
 GRM2K_BRANCH=master
-QWT_BRANCH=qwt-6.1-multiaxes
+QWT_BRANCH=qwt-6.1-multiaxes-scopy
 QWTPOLAR_BRANCH=master # not used
 LIBSIGROKDECODE_BRANCH=master
 
@@ -56,7 +56,6 @@ tar xJf /tmp/gnuradio-$MINGW_VERSION.tar.xz
 
 GNURADIO_DEPS=$(</tmp/gnuradio-$MINGW_VERSION-deps.txt)
 
-#	mingw-w64-$ARCH-qt \
 PACMAN_SYNC_DEPS="
 	$GNURADIO_DEPS \
 	mingw-w64-$ARCH-libxml2 \
@@ -67,14 +66,17 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
 	mingw-w64-$ARCH-doxygen\
+	mingw-w64-$ARCH-libusb \
+	mingw-w64-$ARCH-boost \
+	mingw-w64-$ARCH-qt5 \
 "
 
 
-PACMAN_REPO_DEPS="
-${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
-${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
-${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
-"
+#PACMAN_REPO_DEPS="
+#${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
+#${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
+#${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
+#"
 
 echo "Built scopy-mingw-build-deps on Appveyor" >> $BUILD_STATUS_FILE
 echo "on $(date)" >> $BUILD_STATUS_FILE
@@ -93,12 +95,12 @@ echo "job_link:  ${APPVEYOR_URL}/project/${APPVEYOR_ACCOUNT_NAME}/${APPVEYOR_PRO
 echo $BUILD_STATUS_FILE
 
 echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
-echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
+#echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
 ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 
 echo "### Installing dependencies ... "
 pacman --noconfirm --needed -Sy $PACMAN_SYNC_DEPS
-pacman --noconfirm -U  $PACMAN_REPO_DEPS
+#pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
@@ -248,16 +250,8 @@ build_libsigrokdecode() {
 build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
 	CURRENT_BUILD=qwt
-	git clone --depth 1 https://github.com/osakared/qwt.git -b $QWT_BRANCH ${WORKDIR}/qwt
+	git clone --depth 1 https://github.com/adisuciu/qwt.git -b $QWT_BRANCH ${WORKDIR}/qwt
 	cd ${WORKDIR}/qwt
-
-	# Disable components that we won't build
-	sed -i "s/^QWT_CONFIG\\s*+=\\s*QwtMathML$/#/g" qwtconfig.pri
-	sed -i "s/^QWT_CONFIG\\s*+=\\s*QwtDesigner$/#/g" qwtconfig.pri
-	sed -i "s/^QWT_CONFIG\\s*+=\\s*QwtExamples$/#/g" qwtconfig.pri
-
-	# Fix prefix
-	sed -i "s/^\\s*QWT_INSTALL_PREFIX.*$/QWT_INSTALL_PREFIX=\"\"/g" qwtconfig.pri
 
 	cd ${WORKDIR}/qwt/src
 	qmake
