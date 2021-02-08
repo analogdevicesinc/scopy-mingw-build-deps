@@ -11,6 +11,7 @@ GRM2K_BRANCH=master
 QWT_BRANCH=qwt-6.1-multiaxes-scopy
 QWTPOLAR_BRANCH=master # not used
 LIBSIGROKDECODE_BRANCH=master
+LIBTINYIIOD_BRANCH=master
 
 BUILD_STATUS_FILE=/tmp/scopy-mingw-build-status
 touch $BUILD_STATUS_FILE
@@ -285,6 +286,26 @@ build_qwtpolar() {
 	echo "$CURRENT_BUILD - v1.1.1" >> $BUILD_STATUS_FILE
 }
 
+build_libtinyiiod() {
+	echo "### Building libtinyiiod - branch $LIBTINYIIOD_BRANCH"
+	CURRENT_BUILD=libtinyiiod
+
+	git clone --depth 1 https://github.com/analogdevicesinc/libtinyiiod.git -b $LIBTINYIIOD_BRANCH ${WORKDIR}/libtinyiiod
+
+	mkdir ${WORKDIR}/libtinyiiod/build-${ARCH}
+	cd ${WORKDIR}/libtinyiiod/build-${ARCH}
+
+	cmake -G 'Unix Makefiles' \
+		${CMAKE_OPTS} \
+		-DBUILD_EXAMPLES=OFF\
+		${WORKDIR}/libtinyiiod
+
+	make ${JOBS} install
+	DESTDIR=${WORKDIR} make ${JOBS} install
+
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
+}
+
 install_deps
 build_libiio
 build_libad9361
@@ -295,6 +316,7 @@ build_grm2k
 build_qwt
 build_qwtpolar
 build_libsigrokdecode
+build_libtinyiiod
 
 echo "" >> $BUILD_STATUS_FILE
 echo "pacman -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
