@@ -68,17 +68,17 @@ PACMAN_SYNC_DEPS="
 	mingw-w64-$ARCH-glib2 \
 	mingw-w64-$ARCH-glibmm \
 	mingw-w64-$ARCH-doxygen\
-	mingw-w64-$ARCH-libusb \
 	mingw-w64-$ARCH-boost \
 	mingw-w64-$ARCH-qt5 \
 "
+#	mingw-w64-$ARCH-libusb \
 
 
-#PACMAN_REPO_DEPS="
-#${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
+PACMAN_REPO_DEPS="
+${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-libusb-1.0.21-2-any.pkg.tar.xz \
+"
 #${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-boost-1.72.0-3-any.pkg.tar.zst \
 #${WORKDIR}/old_msys_deps_${MINGW_VERSION}/mingw-w64-$ARCH-qt5-5.14.2-3-any.pkg.tar.zst \
-#"
 
 echo "Built scopy-mingw-build-deps on Appveyor" >> $BUILD_STATUS_FILE
 echo "on $(date)" >> $BUILD_STATUS_FILE
@@ -97,12 +97,12 @@ echo "job_link:  ${APPVEYOR_URL}/project/${APPVEYOR_ACCOUNT_NAME}/${APPVEYOR_PRO
 echo $BUILD_STATUS_FILE
 
 echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
-#echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
+echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
 ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 
 echo "### Installing dependencies ... "
 pacman --noconfirm --needed -Sy $PACMAN_SYNC_DEPS
-#pacman --noconfirm -U  $PACMAN_REPO_DEPS
+pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files
 sed -i "s/\$\${CROSS_COMPILE}/${ARCH}-w64-mingw32-/" /${MINGW_VERSION}/share/qt5/mkspecs/win32-g++/qmake.conf
