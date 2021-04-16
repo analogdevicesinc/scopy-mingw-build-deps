@@ -2,7 +2,7 @@
 
 LIBIIO_BRANCH=master
 LIBAD9361_BRANCH=master
-LIBM2K_BRANCH=master
+LIBM2K_BRANCH=kernelbuffers_v1
 GRIIO_BRANCH=upgrade-3.8
 GNURADIO_FORK=analogdevicesinc
 GNURADIO_BRANCH=scopy
