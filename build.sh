@@ -101,7 +101,7 @@ echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
 ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 
 echo "### Installing dependencies ... "
-pacman --noconfirm --needed -Sy $PACMAN_SYNC_DEPS
+pacman --noconfirm --needed -S $PACMAN_SYNC_DEPS
 pacman --noconfirm -U  $PACMAN_REPO_DEPS
 
 # Fix Qt5 spec files

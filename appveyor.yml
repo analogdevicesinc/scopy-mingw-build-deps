@@ -12,7 +12,14 @@ environment:
         ARCH: i686
 
 install:
-    - cmd:  C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syu"
+    # Update MSYS2 - https://www.msys2.org/docs/ci/#appveyor
+    - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"  # Core update (in case any core packages are outdated)
+    - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Syuu"  # Normal update
+
+    # Then run your code
+    - set CHERE_INVOKING='yes'  # Preserve the current working directory
+    - set MSYSTEM='MINGW64'  # Start a 64 bit Mingw environment
+
     - cd C:\projects\scopy-mingw-build-deps
     - C:\msys64\usr\bin\bash download_old_deps.sh %ARCH% %MINGW_VERSION%
 build_script:
