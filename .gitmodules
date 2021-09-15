@@ -1,0 +1,39 @@
+[submodule "gnuradio"]
+	path = gnuradio
+	url = https://github.com/gnuradio/gnuradio
+[submodule "log4cpp"]
+	path = log4cpp
+	url = https://github.com/orocos-toolchain/log4cpp
+[submodule "glog"]
+	path = glog
+	url = https://github.com/teoperisanu/glog
+[submodule "gr-iio"]
+	path = gr-iio
+	url = https://github.com/analogdevicesinc/gr-iio
+[submodule "gr-m2k"]
+	path = gr-m2k
+	url = https://github.com/analogdevicesinc/gr-m2k
+[submodule "gr-scopy"]
+	path = gr-scopy
+	url = https://github.com/analogdevicesinc/gr-scopy
+[submodule "libad9361"]
+	path = libad9361
+	url = https://github.com/analogdevicesinc/libad9361
+[submodule "libiio"]
+	path = libiio
+	url = https://github.com/analogdevicesinc/libiio
+[submodule "libm2k"]
+	path = libm2k
+	url = https://github.com/analogdevicesinc/libm2k
+[submodule "volk"]
+	path = volk
+	url = https://github.com/gnuradio/volk
+[submodule "libtinyiiod"]
+	path = libtinyiiod
+	url = https://github.com/analogdevicesinc/libtinyiiod
+[submodule "libsigrokdecode"]
+	path = libsigrokdecode
+	url = https://github.com/sigrokproject/libsigrokdecode
+[submodule "qwt-git"]
+	path = qwt-git
+	url = https://git.code.sf.net/p/qwt/git/

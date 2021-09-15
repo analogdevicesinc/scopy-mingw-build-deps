@@ -21,8 +21,8 @@ install:
     - set MSYSTEM='MINGW64'  # Start a 64 bit Mingw environment
 
     - cd C:\projects\scopy-mingw-build-deps
-    - C:\msys64\usr\bin\bash download_old_deps.sh %ARCH% %MINGW_VERSION%
 build_script:
+    - C:\msys64\usr\bin\bash init_staging.sh
     - C:\msys64\usr\bin\bash build.sh
     - echo "### Push artifacts ... "
     - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps-pacman.txt
