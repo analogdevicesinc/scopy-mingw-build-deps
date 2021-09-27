@@ -1,8 +1,7 @@
 #!/usr/bin/bash.exe
 
 set -ex
-source mingw_toolchain.sh
-
+source mingw_toolchain.sh $1
 
 TOOLS_PKGS="\
 	mingw-w64-${ARCH}-cmake \
@@ -30,12 +29,14 @@ PACMAN_SYNC_DEPS=" \
 	mingw-w64-${ARCH}-doxygen\
 	mingw-w64-${ARCH}-qt5 \
 	mingw-w64-${ARCH}-zlib \
-	mingw-w64-${ARCH}-breakpad-git \
+	mingw-w64-${ARCH}-breakpad \
 	mingw-w64-${ARCH}-libusb \
 "
+export PATH=/bin:$MINGW_VERSION/bin:$WORKDIR/cv2pdb:/c/innosetup/:$PATH$
 export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
 
 install_tools() {
+	pacman --noconfirm -S unzip zip
 	mkdir -p $WORKDIR/windres
 	pushd $WORKDIR/windres
 	if [ ! -f windres.exe.gz ]; then 
@@ -44,11 +45,32 @@ install_tools() {
 	fi
 	popd
 
+	wget http://swdownloads.analog.com/cse/m1k/drivers/dpinst.zip
+	wget http://swdownloads.analog.com/cse/m1k/drivers/dfu-util.zip
+	unzip "dpinst.zip"
+    unzip "dfu-util.zip"
+
+	# github release upload tool install
+	wget https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_windows_amd64.zip
+	unzip ghr_v0.13.0_windows_amd64.zip
+	export UPLOAD_TOOL=/c/ghr/ghr_v0.13.0_windows_amd64/ghr.exe
+	
+	wget https://swdownloads.analog.com/cse/scopydeps/cv2pdb-dlls.zip	
+	unzip "cv2pdb-dlls.zip"	
+
+	wget https://jrsoftware.org/download.php/is.exe 
+	
 	pacman --noconfirm --needed -S $TOOLS_PKGS
 }
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
 	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.75.0-9-any.pkg.tar.zst 
+}
+
+recurse_submodules() {
+	pushd $WORKDIR
+	git submodule update --init --recursive --jobs 9
+	popd
 }
 
 create_build_status_file() {
@@ -71,7 +93,7 @@ echo $BUILD_STATUS_FILE
 
 echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
 echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
-ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
+#ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
 }
 
 __clean_build_dir() {
@@ -83,7 +105,7 @@ __clean_build_dir() {
 
 __build_with_cmake() {
 	INSTALL="install"
-	if [ $NO_INSTALL=="TRUE" ]; then
+	if [ ! -z $NO_INSTALL ]; then
 		INSTALL=""
 	fi
 	pushd $WORKDIR/$CURRENT_BUILD
@@ -129,7 +151,7 @@ build_log4cpp() {
 build_volk() {
 	CURRENT_BUILD=volk
 	CURRENT_BUILD_POST_CLEAN="git submodule update --init"
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/mingw64/bin/python3 -DENABLE_MODTOOL=OFF -DENABLE_TESTING=OFF ../"
+	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 -DENABLE_MODTOOL=OFF -DENABLE_TESTING=OFF ../"
 	__build_with_cmake
 
 }
@@ -154,7 +176,7 @@ build_gnuradio() {
 		-DENABLE_TESTING:BOOL=OFF \
 		-DENABLE_INTERNAL_VOLK:BOOL=OFF \
 		-DCMAKE_C_FLAGS=-fno-asynchronous-unwind-tables \
-		-DPYTHON_EXECUTABLE=/mingw64/bin/python3 \
+		-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 \
 		"
 	__build_with_cmake
 }
@@ -207,7 +229,7 @@ build_griio() {
 
 	CURRENT_BUILD=gr-iio
 	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
-	CURRENT_BUILD_CMAKE_OPTS="-DCMAKE_CXX_FLAGS=-D_hypot=hypot -DPYTHON_EXECUTABLE=/mingw64/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="-DCMAKE_CXX_FLAGS=-D_hypot=hypot -DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
 	__build_with_cmake
 
 }
@@ -215,14 +237,14 @@ build_griio() {
 build_grm2k() {
 	echo "### Building gr-m2k - branch $GRM2K_BRANCH"
 	CURRENT_BUILD=gr-m2k
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/mingw64/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
 	__build_with_cmake
 }
 
 build_grscopy() {
 	echo "### Building gr-scopy - branch $GRSCOPY_BRANCH"
 	CURRENT_BUILD=gr-scopy
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/mingw64/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
 	__build_with_cmake
 }
 
@@ -231,8 +253,11 @@ build_libsigrokdecode() {
 	CURRENT_BUILD=libsigrokdecode
 
 	pushd $WORKDIR/libsigrokdecode
-	git reset --hard
-	git clean -xdf
+	if [ -d "$WORKDIR/libsigrokdecode/build-$ARCH" ]; then
+		# hack .. this gets messed up somehow in docker due to changing files to lowercase
+		git reset --hard
+		git clean -xdf
+	fi
 
 	rm -rf ${WORKDIR}/libsigrokdecode/build-${ARCH}
 	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
@@ -310,9 +335,7 @@ appveyor PushArtifact /tmp/AllInstalledPackages
 echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 }
 
-install_tools
-install_deps
-create_build_status_file
+build_deps() {
 build_glog
 build_libiio
 build_libad9361
@@ -326,5 +349,12 @@ build_grm2k
 build_qwt
 build_libsigrokdecode
 build_libtinyiiod
-build_scopy # for testing
-package_and_push
+}
+
+#recurse_submodules
+#install_tools
+#install_deps
+#create_build_status_file
+#build_deps
+#build_scopy # for testing
+#package_and_push

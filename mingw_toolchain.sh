@@ -9,14 +9,33 @@ touch $BUILD_STATUS_FILE
 #set -e
 #set -x 
 
+if [ $# -ne 1 ]; then
+	ARG1=x86_64
+else
+	ARG1=$1
+fi
+export ARCH=$ARG1
+if [ $ARCH == "x86_64" ]
+then
+	export MINGW_VERSION=mingw64
+	export ARCH_BIT=64
+else
+	export MINGW_VERSION=mingw32
+	export ARCH_BIT=32
+fi
+
+echo $STAGING_PREFIX is the staging prefix
+export STAGING=${STAGING_PREFIX}_${ARCH}
+export JOBS="-j9"
+
 export PATH=/bin:/usr/bin:/${MINGW_VERSION}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent
 
 export WORKDIR=${PWD}
 
-if [ -z "$STAGING" ];
+if [ -z "$STAGING_PREFIX" ]
 	then 
-		export STAGING_DIR=$WORKDIR/staging/$MINGW_VERSION
-		export STAGING_ENV=$WORKDIR/staging
+		export STAGING_DIR=$WORKDIR/staging_$ARCH/$MINGW_VERSION
+		export STAGING_ENV=$WORKDIR/staging_$ARCH
 	else
 		export STAGING_DIR=$STAGING/$MINGW_VERSION
 		export STAGING_ENV=$STAGING
@@ -40,8 +59,9 @@ export CMAKE_OPTS=( \
 	-DCMAKE_INSTALL_PREFIX=$STAGING_DIR \
 )
 export QMAKE="$STAGING_DIR/bin/qmake"
-export CMAKE="/mingw64/bin/cmake ${CMAKE_OPTS[@]} "
+export CMAKE="/$MINGW_VERSION/bin/cmake ${CMAKE_OPTS[@]} "
 export PACMAN="pacman -r $STAGING_ENV --noconfirm --needed"
+export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
 
 export AUTOCONF_OPTS="--prefix=$STAGING_DIR \
 	--host=${ARCH}-w64-mingw32 \
@@ -56,6 +76,8 @@ else
 fi
 
 echo -- $STAGING_DIR is the staging dir
+echo -- $MINGW_VERSION - mingw version
+echo -- $ARCH - target arch
 echo -- PATH is $PATH
 echo -- using cmake command
 echo $CMAKE

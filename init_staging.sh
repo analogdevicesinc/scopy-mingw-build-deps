@@ -1,6 +1,6 @@
 #!/usr/bin/bash.exe
 set -x
-source mingw_toolchain.sh
+source mingw_toolchain.sh $1
 
 init_staging() {
 	rm -rf $STAGING_ENV
