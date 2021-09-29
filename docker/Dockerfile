@@ -1,5 +1,5 @@
 # select as base image matching your host to get process isolation
-FROM mcr.microsoft.com/windows/servercore:2004
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 # this creates an empty file named recycle.bin which essentialy disables the recycle bin
@@ -27,11 +27,12 @@ SHELL ["cmd", "/S", "/C"]
 RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Scc "
 # install general packages needed to run build scripts
 RUN C:\msys64\usr\bin\bash.exe -c 'pacman --noconfirm --needed -Sy git'
-RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch refactor "
+RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch refactor  "
 
 # install packages and build scopy-deps
-ARG BUILD_TARGET=x86_64
+ARG BUILD_TARGET=x86_64 
 ENV BUILD_TARGET=$BUILD_TARGET
+RUN echo %BUILD_TARGET%
 
 # exit 0 is required because init_staging force terminates the msys process resulting in an error - it is not an error
 RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && ls && echo Building for $BUILD_TARGET &&./init_staging.sh $BUILD_TARGET" & exit 0

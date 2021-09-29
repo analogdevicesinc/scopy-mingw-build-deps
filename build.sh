@@ -116,6 +116,7 @@ __build_with_cmake() {
 	eval $CURRENT_BUILD_POST_CMAKE
 	$MAKE_BIN $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE
+	rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 	# clear vars
 	CURRENT_BUILD_CMAKE_OPTS="" 
@@ -269,6 +270,7 @@ build_libsigrokdecode() {
 
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
 	$MAKE_BIN $JOBS install
+	rm -rf ${WORKDIR}/libsigrokdecode/build-${ARCH}
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 	popd
 }
