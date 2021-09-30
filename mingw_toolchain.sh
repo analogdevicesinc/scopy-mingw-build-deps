@@ -58,9 +58,17 @@ export CMAKE_OPTS=( \
 	-DCMAKE_STAGING_PREFIX=$STAGING_DIR \
 	-DCMAKE_INSTALL_PREFIX=$STAGING_DIR \
 )
-export QMAKE="$STAGING_DIR/bin/qmake"
 export CMAKE="/$MINGW_VERSION/bin/cmake ${CMAKE_OPTS[@]} "
-export PACMAN="pacman -r $STAGING_ENV --noconfirm --needed"
+if [ -z $USE_STAGING ]
+then
+	export PACMAN="pacman --noconfirm --needed"
+	export QMAKE="/$MINGW_VERSION/bin/qmake"
+else
+	#we want to use staging
+	export PACMAN="pacman -r $STAGING_ENV --noconfirm --needed"
+	export QMAKE="$STAGING_DIR/bin/qmake"
+fi
+
 export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
 
 export AUTOCONF_OPTS="--prefix=$STAGING_DIR \

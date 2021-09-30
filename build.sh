@@ -115,8 +115,7 @@ __build_with_cmake() {
 	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
 	eval $CURRENT_BUILD_POST_CMAKE
 	$MAKE_BIN $JOBS $INSTALL
-	eval $CURRENT_BUILD_POST_MAKE
-	rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
+	eval $CURRENT_BUILD_POST_MAKE		
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 	# clear vars
 	CURRENT_BUILD_CMAKE_OPTS="" 
@@ -127,6 +126,7 @@ __build_with_cmake() {
 	CURRENT_BUILD=""
 	NO_INSTALL=""
 	popd
+	rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
 }
 
 build_log4cpp() {
