@@ -40,3 +40,6 @@
 [submodule "qadvanceddocking"]
 	path = qadvanceddocking
 	url = https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System/
+[submodule "qwt"]
+	path = qwt
+	url = https://github.com/cseci/qwt

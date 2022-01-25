@@ -278,16 +278,7 @@ build_libsigrokdecode() {
 build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
 	CURRENT_BUILD=qwt
-	svn checkout svn://svn.code.sf.net/p/qwt/code/branches/qwt-6.1-multiaxes $CURRENT_BUILD
-	pushd $CURRENT_BUILD
-	svn patch $WORKDIR/qwt-config-svn.patch
-
-	$QMAKE
-	make $JOBS 
-	make INSTALL_ROOT="$STAGING_DIR" $JOBS install
-	cp $STAGING_DIR/lib/qwt.dll $STAGING_DIR/bin/qwt.dll
-	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
-	popd
+	__build_with_cmake
 }
 
 build_libtinyiiod() {
