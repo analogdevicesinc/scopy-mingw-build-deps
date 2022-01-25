@@ -297,6 +297,13 @@ build_libtinyiiod() {
 	__build_with_cmake
 }
 
+build_qadvanceddocking() {
+echo "### Building Qt-Advanced-Docking-System "
+CURRENT_BUILD=qadvanceddocking
+__build_with_cmake
+
+}
+
 build_scopy() {
 	CURRENT_BUILD=scopy
 	NO_INSTALL="TRUE"
@@ -351,6 +358,7 @@ build_grm2k
 build_qwt
 build_libsigrokdecode
 build_libtinyiiod
+build_qadvanceddocking
 }
 
 #recurse_submodules

@@ -37,3 +37,6 @@
 [submodule "qwt-git"]
 	path = qwt-git
 	url = https://git.code.sf.net/p/qwt/git/
+[submodule "qadvanceddocking"]
+	path = qadvanceddocking
+	url = https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System/
