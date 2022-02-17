@@ -1,12 +1,12 @@
 [submodule "gnuradio"]
 	path = gnuradio
-	url = https://github.com/gnuradio/gnuradio
+	url = https://github.com/analogdevicesinc/gnuradio
 [submodule "log4cpp"]
 	path = log4cpp
-	url = https://github.com/orocos-toolchain/log4cpp
+	url = https://github.com/cseci/log4cpp
 [submodule "glog"]
 	path = glog
-	url = https://github.com/teoperisanu/glog
+	url = https://github.com/google/glog
 [submodule "gr-iio"]
 	path = gr-iio
 	url = https://github.com/analogdevicesinc/gr-iio
@@ -34,9 +34,6 @@
 [submodule "libsigrokdecode"]
 	path = libsigrokdecode
 	url = https://github.com/sigrokproject/libsigrokdecode
-[submodule "qwt-git"]
-	path = qwt-git
-	url = https://git.code.sf.net/p/qwt/git/
 [submodule "qadvanceddocking"]
 	path = qadvanceddocking
 	url = https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System/

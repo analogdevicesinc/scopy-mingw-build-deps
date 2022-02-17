@@ -14,6 +14,7 @@ TOOLS_PKGS="\
 	git\
 	svn\
 	base-devel\
+	mingw-w64-${ARCH}-autotools\
 "
 	#mingw-w64-${ARCH}-boost 
 PACMAN_SYNC_DEPS=" \
@@ -114,7 +115,7 @@ __build_with_cmake() {
 	eval $CURRENT_BUILD_PATCHES
 	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
 	eval $CURRENT_BUILD_POST_CMAKE
-	$MAKE_BIN $JOBS $INSTALL
+	make $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE		
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 	# clear vars
@@ -278,7 +279,13 @@ build_libsigrokdecode() {
 build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
 	CURRENT_BUILD=qwt
-	__build_with_cmake
+	pushd $CURRENT_BUILD
+	$QMAKE
+	make $JOBS
+	make INSTALL_ROOT="$STAGING_DIR" $JOBS install
+	cp $STAGING_DIR/lib/qwt.dll $STAGING_DIR/bin/qwt.dll
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
+	popd
 }
 
 build_libtinyiiod() {
@@ -349,7 +356,7 @@ build_grm2k
 build_qwt
 build_libsigrokdecode
 build_libtinyiiod
-build_qadvanceddocking
+#build_qadvanceddocking
 }
 
 #recurse_submodules

@@ -44,7 +44,8 @@ fi
 export CC=/${MINGW_VERSION}/bin/${ARCH}-w64-mingw32-gcc.exe
 export CXX=/${MINGW_VERSION}/bin/${ARCH}-w64-mingw32-g++.exe
 export JOBS="-j 9"
-export MAKE_BIN=/${MINGW_VERSION}/bin/mingw32-make.exe 
+#export MAKE_BIN=/${MINGW_VERSION}/bin/mingw32-make.exe 
+export MAKE_BIN=/bin/make
 export MAKE_CMD="$MAKE_BIN $JOBS"
 export CMAKE_GENERATOR="Unix Makefiles"
 export CMAKE_OPTS=( \
