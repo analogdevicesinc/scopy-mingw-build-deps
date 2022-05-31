@@ -11,8 +11,10 @@ TOOLS_PKGS="\
 	mingw-w64-${ARCH}-python-six\
 	mingw-w64-${ARCH}-make\
 	mingw-w64-${ARCH}-doxygen \
+	mingw-w64-${ARCH}-pcre2\
 	git\
 	svn\
+	vim\
 	base-devel\
 	mingw-w64-${ARCH}-autotools\
 "
@@ -28,7 +30,12 @@ PACMAN_SYNC_DEPS=" \
 	mingw-w64-${ARCH}-glib2 \
 	mingw-w64-${ARCH}-glibmm \
 	mingw-w64-${ARCH}-doxygen\
-	mingw-w64-${ARCH}-qt5 \
+	mingw-w64-${ARCH}-qt6-base \
+	mingw-w64-${ARCH}-qt6-declarative \
+	mingw-w64-${ARCH}-qt6-5compat\
+	mingw-w64-${ARCH}-qt6-svg\
+	mingw-w64-${ARCH}-pcre2\
+	mingw-w64-${ARCH}-qt6-tools\
 	mingw-w64-${ARCH}-zlib \
 	mingw-w64-${ARCH}-breakpad \
 	mingw-w64-${ARCH}-libusb \
@@ -45,7 +52,7 @@ install_tools() {
 		gunzip windres.exe.gz
 	fi
 	popd
-
+	
 	wget http://swdownloads.analog.com/cse/m1k/drivers/dpinst.zip
 	wget http://swdownloads.analog.com/cse/m1k/drivers/dfu-util.zip
 	unzip "dpinst.zip"
@@ -62,10 +69,12 @@ install_tools() {
 	wget https://jrsoftware.org/download.php/is.exe 
 	
 	pacman --noconfirm --needed -S $TOOLS_PKGS
+	
 }
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
 	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.75.0-9-any.pkg.tar.zst 
+	ln -s ${QMAKE}-qt6.exe ${QMAKE}.exe
 }
 
 recurse_submodules() {
@@ -113,7 +122,7 @@ __build_with_cmake() {
 	__clean_build_dir
 	eval $CURRENT_BUILD_POST_CLEAN
 	eval $CURRENT_BUILD_PATCHES
-	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
+	$CMAKE -DCMAKE_VERBOSE_MAKEFILE=ON $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
 	eval $CURRENT_BUILD_POST_CMAKE
 	make $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE		
@@ -150,12 +159,37 @@ build_log4cpp() {
 	__build_with_cmake
 }
 
+build_spdlog() {
+	ln -s /usr/bin/windres.exe /usr/bin/x86_64-w64-mingw32-windres.exe
+	CURRENT_BUILD=spdlog
+	CURRENT_BUILD_CMAKE_OPTS="-DSPDLOG_BUILD_SHARED=ON -DSPDLOG_BUILD_EXAMPLE=OFF"
+	__build_with_cmake 
+}
+
 build_volk() {
 	CURRENT_BUILD=volk
-	CURRENT_BUILD_POST_CLEAN="git submodule update --init"
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 -DENABLE_MODTOOL=OFF -DENABLE_TESTING=OFF ../"
+	CURRENT_BUILD_POST_CLEAN="git submodule update --init ../cpu_features"
+	# for some reason the script in volk/cmake/Modules/VolkPython:132 fails - sysconfig.get_config_var("prefix") = D:/a/msys64 (?????)
+	CURRENT_BUILD_CMAKE_OPTS="
+	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
+	 -DENABLE_MODTOOL=OFF\
+	 -DENABLE_TESTING=OFF\
+	 -DVOLK_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages"
 	__build_with_cmake
 
+}
+
+build_libsndfile() {
+	CURRENT_BUILD=libsndfile
+	CURRENT_BUILD_CMAKE_OPTS="\
+	-DENABLE_EXTERNAL_LIBS=OFF\
+	-DENABLE_MPEG=OFF\
+	-DBUILD_PROGRAMS=OFF\
+	-DBUILD_EXAMPLES=OFF\
+	-DENABLE_CPACK=OFF\
+	-DBUILD_SHARED_LIBS=OFF\
+	-DBUILD_TESTING=OFF"
+	__build_with_cmake
 }
 
 build_gnuradio() {
@@ -167,17 +201,18 @@ build_gnuradio() {
 	# C:\Users\appveyor\AppData\Local\Temp\1\ccO00eqH.s:17939: Error: invalid register for .seh_savexmm
 	# might be related to the liborc library though ...
 
-	CURRENT_BUILD_CMAKE_OPTS="-DENABLE_GR_DIGITAL:BOOL=OFF \
-		-DENABLE_GR_DTV:BOOL=OFF \
-		-DENABLE_GR_AUDIO:BOOL=OFF \
-		-DENABLE_GR_CHANNELS:BOOL=OFF \
-		-DENABLE_GR_TRELLIS:BOOL=OFF \
-		-DENABLE_GR_VOCODER:BOOL=OFF \
-		-DENABLE_GR_FEC:BOOL=OFF \
-		-DENABLE_DOXYGEN:BOOL=OFF \
-		-DENABLE_TESTING:BOOL=OFF \
-		-DENABLE_INTERNAL_VOLK:BOOL=OFF \
+	# for some reason the script in volk/cmake/Modules/VolkPython:132 fails - sysconfig.get_config_var("prefix") = D:/a/msys64 (?????)
+
+	CURRENT_BUILD_CMAKE_OPTS="-DENABLE_DEFAULT=OFF\
+				-DENABLE_GNURADIO_RUNTIME=ON\
+				-DENABLE_GR_ANALOG=ON\
+				-DENABLE_GR_BLOCKS=ON\
+				-DENABLE_GR_FFT=ON\
+				-DENABLE_GR_FILTER=ON\
+				-DENABLE_VOLK=ON\
+				-DENABLE_GR_IIO=ON\
 		-DCMAKE_C_FLAGS=-fno-asynchronous-unwind-tables \
+		-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
 		-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 \
 		"
 	__build_with_cmake
@@ -213,7 +248,7 @@ build_libm2k() {
 		-DENABLE_PYTHON=OFF\
 		-DENABLE_CSHARP=OFF\
 		-DBUILD_EXAMPLES=OFF\
-		-DENABLE_TOOLS=OFF\
+		-DENABLE_TOOLS=ON\
 		-DENABLE_LOG=ON\
 		-DINSTALL_UDEV_RULES=OFF\
 		"
@@ -231,7 +266,10 @@ build_griio() {
 
 	CURRENT_BUILD=gr-iio
 	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
-	CURRENT_BUILD_CMAKE_OPTS="-DCMAKE_CXX_FLAGS=-D_hypot=hypot -DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="
+	-DCMAKE_CXX_FLAGS=-D_hypot=hypot\
+	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
+	"
 	__build_with_cmake
 
 }
@@ -239,14 +277,20 @@ build_griio() {
 build_grm2k() {
 	echo "### Building gr-m2k - branch $GRM2K_BRANCH"
 	CURRENT_BUILD=gr-m2k
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="\
+	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
+	-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
+	"
 	__build_with_cmake
 }
 
 build_grscopy() {
 	echo "### Building gr-scopy - branch $GRSCOPY_BRANCH"
 	CURRENT_BUILD=gr-scopy
-	CURRENT_BUILD_CMAKE_OPTS="-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 "
+	CURRENT_BUILD_CMAKE_OPTS="\
+	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
+	-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
+	"
 	__build_with_cmake
 }
 
@@ -347,10 +391,10 @@ build_glog
 build_libiio
 build_libad9361
 build_libm2k
-build_log4cpp
+build_spdlog
+build_libsndfile
 build_volk
 build_gnuradio
-build_griio
 build_grscopy
 build_grm2k
 build_qwt

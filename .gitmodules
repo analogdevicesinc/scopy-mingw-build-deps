@@ -40,3 +40,9 @@
 [submodule "qwt"]
 	path = qwt
 	url = https://github.com/cseci/qwt
+[submodule "spdlog"]
+	path = spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "libsndfile"]
+	path = libsndfile
+	url = https://github.com/libsndfile/libsndfile

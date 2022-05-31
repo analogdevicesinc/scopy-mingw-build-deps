@@ -27,7 +27,7 @@ SHELL ["cmd", "/S", "/C"]
 RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Scc "
 # install general packages needed to run build scripts
 RUN C:\msys64\usr\bin\bash.exe -c 'pacman --noconfirm --needed -Sy git'
-RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch master "
+RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch qt6-attempt "
 
 # install packages and build scopy-deps
 ARG BUILD_TARGET=x86_64 

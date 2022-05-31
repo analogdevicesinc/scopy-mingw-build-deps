@@ -24,21 +24,28 @@ else
 	export ARCH_BIT=32
 fi
 
-echo $STAGING_PREFIX is the staging prefix
-export STAGING=${STAGING_PREFIX}_${ARCH}
-export JOBS="-j9"
-
 export PATH=/bin:/usr/bin:/${MINGW_VERSION}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent
 
 export WORKDIR=${PWD}
+export JOBS="-j9"
 
-if [ -z "$STAGING_PREFIX" ]
-	then 
-		export STAGING_DIR=$WORKDIR/staging_$ARCH/$MINGW_VERSION
-		export STAGING_ENV=$WORKDIR/staging_$ARCH
-	else
-		export STAGING_DIR=$STAGING/$MINGW_VERSION
-		export STAGING_ENV=$STAGING
+if [ -z $USE_STAGING ]
+then
+	echo "No staging"
+	export STAGING_DIR=/$MINGW_VERSION
+	export STAGING_ENV=
+else
+	echo $STAGING_PREFIX is the staging prefix
+	export STAGING=${STAGING_PREFIX}_${ARCH}
+
+	if [ -z "$STAGING_PREFIX" ]
+		then 
+			export STAGING_DIR=$WORKDIR/staging_$ARCH/$MINGW_VERSION
+			export STAGING_ENV=$WORKDIR/staging_$ARCH
+		else
+			export STAGING_DIR=$STAGING/$MINGW_VERSION
+			export STAGING_ENV=$STAGING
+	fi
 fi
 
 export CC=/${MINGW_VERSION}/bin/${ARCH}-w64-mingw32-gcc.exe
