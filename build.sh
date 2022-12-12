@@ -30,12 +30,7 @@ PACMAN_SYNC_DEPS=" \
 	mingw-w64-${ARCH}-glib2 \
 	mingw-w64-${ARCH}-glibmm \
 	mingw-w64-${ARCH}-doxygen\
-	mingw-w64-${ARCH}-qt6-base \
-	mingw-w64-${ARCH}-qt6-declarative \
-	mingw-w64-${ARCH}-qt6-5compat\
-	mingw-w64-${ARCH}-qt6-svg\
-	mingw-w64-${ARCH}-pcre2\
-	mingw-w64-${ARCH}-qt6-tools\
+	mingw-w64-${ARCH}-qt5 \
 	mingw-w64-${ARCH}-zlib \
 	mingw-w64-${ARCH}-breakpad \
 	mingw-w64-${ARCH}-libusb \
@@ -74,7 +69,6 @@ install_tools() {
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
 	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.75.0-9-any.pkg.tar.zst 
-	ln -s ${QMAKE}-qt6.exe ${QMAKE}.exe
 }
 
 recurse_submodules() {
