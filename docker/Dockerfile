@@ -24,6 +24,9 @@ setx MSYSTEM MINGW64
 WORKDIR C:\\msys64\\home\\docker
 RUN C:\msys64\usr\bin\bash.exe -lc " "
 SHELL ["cmd", "/S", "/C"]
+RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syyu"
+RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Sy msys2-keyring"
+RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Su"
 RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Scc "
 # install general packages needed to run build scripts
 RUN C:\msys64\usr\bin\bash.exe -c 'pacman --noconfirm --needed -Sy git'
