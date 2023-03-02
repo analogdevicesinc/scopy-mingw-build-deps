@@ -1,29 +1,21 @@
-From 0b21384bcd5ea71885dde8ebcb4c4d1bfd6f0187 Mon Sep 17 00:00:00 2001
-From: Paul Cercueil <paul.cercueil@analog.com>
-Date: Mon, 3 Jul 2017 13:07:02 +0200
-Subject: [PATCH] Fix public functions visibility on Windows
+commit 1b13802e324f00f4e840eff7b0f3b6761fffa1a1
+Author: Bindea Cristian <cristian.bindea@analog.com>
+Date:   Thu Mar 2 16:07:15 2023 +0200
 
-Signed-off-by: Paul Cercueil <paul.cercueil@analog.com>
----
- libsigrokdecode.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+    Subject: [PATCH] Update public functions visibility on Windows
+    
+    Signed-off-by: Bindea Cristian <cristian.bindea@analog.com>
 
 diff --git a/libsigrokdecode.h b/libsigrokdecode.h
-index 03a5de0..ed25e89 100644
+index ea17cb8..acc2cbc 100644
 --- a/libsigrokdecode.h
 +++ b/libsigrokdecode.h
-@@ -108,8 +108,10 @@ enum srd_loglevel {
- /* Marks public libsigrokdecode API symbols. */
- #ifndef _WIN32
- #define SRD_API __attribute__((visibility("default")))
+@@ -112,6 +112,8 @@ enum srd_loglevel {
+ #  else
+ #    define SRD_API extern
+ #  endif
 +#elif defined(LIBSIGROKDECODE_EXPORT)
-+#define SRD_API __declspec(dllexport)
++#  define SRD_API __declspec(dllexport)
  #else
--#define SRD_API
-+#define SRD_API __declspec(dllimport)
+ #  define SRD_API __attribute__((visibility("default")))
  #endif
- 
- /* Marks private, non-public libsigrokdecode symbols (not part of the API). */
--- 
-2.13.2
-
