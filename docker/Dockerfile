@@ -9,7 +9,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 RUN echo . > 'C:\$RECYCLE.BIN';  
 
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-Invoke-WebRequest -UseBasicParsing -uri "https://github.com/msys2/msys2-installer/releases/download/2021-07-25/msys2-base-x86_64-20210725.sfx.exe" -OutFile msys2.exe; \
+Invoke-WebRequest -UseBasicParsing -uri "https://github.com/msys2/msys2-installer/releases/download/2023-01-27/msys2-base-x86_64-20230127.sfx.exe" -OutFile msys2.exe; \
 .\msys2.exe -y -oC:\\; \
 Remove-Item msys2.exe; 
 RUN 'mkdir C:/msys64/home/docker/ && cd C:/msys64/home/docker/'
