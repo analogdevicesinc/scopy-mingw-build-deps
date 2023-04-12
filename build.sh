@@ -1,16 +1,16 @@
 #!/usr/bin/bash.exe
 
-set -ex
-source mingw_toolchain.sh $1
+#set -ex
+source mingw_toolchain.sh $1 $2 $3
 
 TOOLS_PKGS="\
-	mingw-w64-${ARCH}-cmake \
-	mingw-w64-${ARCH}-gcc \
+	mingw-w64-${ARCH}-cmake\
+	mingw-w64-${ARCH}-gcc\
 	mingw-w64-${ARCH}-python3\
 	mingw-w64-${ARCH}-python-mako\
 	mingw-w64-${ARCH}-python-six\
 	mingw-w64-${ARCH}-make\
-	mingw-w64-${ARCH}-doxygen \
+	mingw-w64-${ARCH}-doxygen\
 	mingw-w64-${ARCH}-pcre2\
 	git\
 	svn\
@@ -19,27 +19,26 @@ TOOLS_PKGS="\
 	mingw-w64-${ARCH}-autotools\
 "
 	#mingw-w64-${ARCH}-boost 
-PACMAN_SYNC_DEPS=" \
-	mingw-w64-${ARCH}-fftw \
-	mingw-w64-${ARCH}-orc \
-	mingw-w64-${ARCH}-libxml2 \
-	mingw-w64-${ARCH}-libzip \
-	mingw-w64-${ARCH}-fftw \
-	mingw-w64-${ARCH}-libzip \
-	mingw-w64-${ARCH}-libffi \
-	mingw-w64-${ARCH}-glib2 \
-	mingw-w64-${ARCH}-glibmm \
+PACMAN_SYNC_DEPS="\
+	mingw-w64-${ARCH}-fftw\
+	mingw-w64-${ARCH}-orc\
+	mingw-w64-${ARCH}-libxml2\
+	mingw-w64-${ARCH}-libzip\
+	mingw-w64-${ARCH}-fftw\
+	mingw-w64-${ARCH}-libzip\
+	mingw-w64-${ARCH}-libffi\
+	mingw-w64-${ARCH}-glib2\
+	mingw-w64-${ARCH}-glibmm\
 	mingw-w64-${ARCH}-doxygen\
-	mingw-w64-${ARCH}-qt5 \
-	mingw-w64-${ARCH}-zlib \
-	mingw-w64-${ARCH}-breakpad \
-	mingw-w64-${ARCH}-libusb \
+	mingw-w64-${ARCH}-qt5\
+	mingw-w64-${ARCH}-zlib\
+	mingw-w64-${ARCH}-breakpad\
+	mingw-w64-${ARCH}-libusb\
 "
-export PATH=/bin:$MINGW_VERSION/bin:$WORKDIR/cv2pdb:/c/innosetup/:$PATH$
-export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
+
 
 install_tools() {
-	pacman --noconfirm -S unzip zip
+	$PACMAN -S unzip zip
 	mkdir -p $WORKDIR/windres
 	pushd $WORKDIR/windres
 	if [ ! -f windres.exe.gz ]; then 
@@ -63,7 +62,8 @@ install_tools() {
 
 	wget https://jrsoftware.org/download.php/is.exe 
 	
-	pacman --noconfirm --needed -S $TOOLS_PKGS
+	#pacman --noconfirm --needed -S $TOOLS_PKGS
+	$PACMAN -S $TOOLS_PKGS
 	
 }
 install_deps() {
@@ -116,7 +116,7 @@ __build_with_cmake() {
 	__clean_build_dir
 	eval $CURRENT_BUILD_POST_CLEAN
 	eval $CURRENT_BUILD_PATCHES
-	$CMAKE -DCMAKE_VERBOSE_MAKEFILE=ON $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
+	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
 	eval $CURRENT_BUILD_POST_CMAKE
 	make $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE		
@@ -130,109 +130,39 @@ __build_with_cmake() {
 	CURRENT_BUILD=""
 	NO_INSTALL=""
 	popd
-	rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
+	if [ ! -z $INSTALL ]; then
+		rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
+	fi
 }
 
-build_log4cpp() {
-	CURRENT_BUILD=log4cpp
 
-	# this is a fix for MINGW long long long is too long - patch the config-MingW32.h
-	# probably not the cleanest patch - deletes this line
-	# https://github.com/orocos-toolchain/log4cpp/blob/359be7d88eb8a87f618620918c73ef1fc6e87242/include/log4cpp/config-MinGW32.h#L27
-	# we need a better patch here or maybe use another repo
-
-	CURRENT_BUILD_POST_CLEAN="
-	git reset --hard &&
-	sed '27d' ../include/log4cpp/config-MinGW32.h > temp && mv temp ../include/log4cpp/config-MinGW32.h;
-	"
-	# LOG4CPP puts dll in wrong file for MINGW - it should be in bin, but it puts it in lib so we copy it
-	CURRENT_BUILD_POST_MAKE="
-	mkdir -p $STAGING_DIR/bin && 
-	cp $STAGING_DIR/lib/liblog4cpp.dll $STAGING_DIR/bin/liblog4cpp.dll
-	"
-	__build_with_cmake
-}
-
-build_spdlog() {
-	ln -s /usr/bin/windres.exe /usr/bin/x86_64-w64-mingw32-windres.exe
-	CURRENT_BUILD=spdlog
-	CURRENT_BUILD_CMAKE_OPTS="-DSPDLOG_BUILD_SHARED=ON -DSPDLOG_BUILD_EXAMPLE=OFF"
-	__build_with_cmake 
-}
-
-build_volk() {
-	CURRENT_BUILD=volk
-	CURRENT_BUILD_POST_CLEAN="git submodule update --init ../cpu_features"
-	# for some reason the script in volk/cmake/Modules/VolkPython:132 fails - sysconfig.get_config_var("prefix") = D:/a/msys64 (?????)
-	CURRENT_BUILD_CMAKE_OPTS="
-	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
-	 -DENABLE_MODTOOL=OFF\
-	 -DENABLE_TESTING=OFF\
-	 -DVOLK_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages"
-	__build_with_cmake
-
-}
-
-build_libsndfile() {
-	CURRENT_BUILD=libsndfile
+build_glog() {
+	CURRENT_BUILD=glog
 	CURRENT_BUILD_CMAKE_OPTS="\
-	-DENABLE_EXTERNAL_LIBS=OFF\
-	-DENABLE_MPEG=OFF\
-	-DBUILD_PROGRAMS=OFF\
-	-DBUILD_EXAMPLES=OFF\
-	-DENABLE_CPACK=OFF\
-	-DBUILD_SHARED_LIBS=OFF\
-	-DBUILD_TESTING=OFF"
-	__build_with_cmake
-}
-
-build_gnuradio() {
-	#echo gnuradio
-	CURRENT_BUILD=gnuradio
-
-	# Set -fno-asynchronous-unwind-tables to avoid these error messages:
-	# C:\Users\appveyor\AppData\Local\Temp\1\ccO00eqH.s: Assembler messages:
-	# C:\Users\appveyor\AppData\Local\Temp\1\ccO00eqH.s:17939: Error: invalid register for .seh_savexmm
-	# might be related to the liborc library though ...
-
-	# for some reason the script in volk/cmake/Modules/VolkPython:132 fails - sysconfig.get_config_var("prefix") = D:/a/msys64 (?????)
-
-	CURRENT_BUILD_CMAKE_OPTS="-DENABLE_DEFAULT=OFF\
-				-DENABLE_GNURADIO_RUNTIME=ON\
-				-DENABLE_GR_ANALOG=ON\
-				-DENABLE_GR_BLOCKS=ON\
-				-DENABLE_GR_FFT=ON\
-				-DENABLE_GR_FILTER=ON\
-				-DENABLE_VOLK=ON\
-				-DENABLE_GR_IIO=ON\
-		-DCMAKE_C_FLAGS=-fno-asynchronous-unwind-tables \
-		-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
-		-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3 \
-		"
+	-DWITH_GFLAGS=OFF\
+	-DBUILD_SHARED_LIBS=ON\
+	"
 	__build_with_cmake
 }
 
 build_libiio() {
 	CURRENT_BUILD=libiio
 	CURRENT_BUILD_CMAKE_OPTS="\
-		${RC_COMPILER_OPT} \
-		-DENABLE_IPV6=OFF \
-		-DWITH_USB_BACKEND=ON \
-		-DWITH_SERIAL_BACKEND=OFF \
-		-DWITH_TESTS:BOOL=OFF \
-		-DWITH_DOC:BOOL=OFF \
-		-DCSHARP_BINDINGS:BOOL=OFF \
-		-DPYTHON_BINDINGS:BOOL=OFF \
+		${RC_COMPILER_OPT}\
+		-DENABLE_IPV6=OFF\
+		-DWITH_USB_BACKEND=ON\
+		-DWITH_SERIAL_BACKEND=OFF\
+		-DWITH_TESTS:BOOL=OFF\
+		-DWITH_DOC:BOOL=OFF\
+		-DCSHARP_BINDINGS:BOOL=OFF\
+		-DPYTHON_BINDINGS:BOOL=OFF\
 	"
 	__build_with_cmake
 }
 
-build_glog() {
-	CURRENT_BUILD=glog
-	CURRENT_BUILD_CMAKE_OPTS="\
-	-DWITH_GFLAGS=OFF \
-	-DBUILD_SHARED_LIBS=ON \
-	"
+build_libad9361() {
+	echo "### Building libad9361 - branch $LIBAD9361_BRANCH"
+	CURRENT_BUILD=libad9361
 	__build_with_cmake
 }
 
@@ -249,43 +179,88 @@ build_libm2k() {
 	__build_with_cmake
 }
 
-build_libad9361() {
-	echo "### Building libad9361 - branch $LIBAD9361_BRANCH"
-	CURRENT_BUILD=libad9361
+build_spdlog() {
+	ln -s /usr/bin/windres.exe /usr/bin/x86_64-w64-mingw32-windres.exe
+	CURRENT_BUILD=spdlog
+	CURRENT_BUILD_CMAKE_OPTS="\
+		-DSPDLOG_BUILD_SHARED=ON\
+		-DSPDLOG_BUILD_EXAMPLE=OFF\
+		"
 	__build_with_cmake
 }
 
-build_griio() {
-	echo "### Building gr-iio - branch $GRIIO_BRANCH"
+build_libsndfile() {
+	CURRENT_BUILD=libsndfile
+	CURRENT_BUILD_CMAKE_OPTS="\
+	-DENABLE_EXTERNAL_LIBS=OFF\
+	-DENABLE_MPEG=OFF\
+	-DBUILD_PROGRAMS=OFF\
+	-DBUILD_EXAMPLES=OFF\
+	-DENABLE_CPACK=OFF\
+	-DBUILD_SHARED_LIBS=OFF\
+	-DBUILD_TESTING=OFF"
+	__build_with_cmake
+}
 
-	CURRENT_BUILD=gr-iio
-	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
-	CURRENT_BUILD_CMAKE_OPTS="
-	-DCMAKE_CXX_FLAGS=-D_hypot=hypot\
-	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
-	"
+build_volk() {
+	CURRENT_BUILD=volk
+	CURRENT_BUILD_POST_CLEAN="git submodule update --init ../cpu_features"
+	CURRENT_BUILD_CMAKE_OPTS="\
+		-DENABLE_MODTOOL=OFF\
+		-DENABLE_TESTING=OFF\
+		-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3.exe\
+		-DGR_PYTHON_DIR==$STAGING_DIR/lib/python3.10/site-packages\
+		"
 	__build_with_cmake
 
+}
+
+build_gnuradio() {
+	CURRENT_BUILD=gnuradio
+	CURRENT_BUILD_CMAKE_OPTS="\
+		-DENABLE_DEFAULT=OFF\
+		-DENABLE_GNURADIO_RUNTIME=ON\
+		-DENABLE_GR_ANALOG=ON\
+		-DENABLE_GR_BLOCKS=ON\
+		-DENABLE_GR_FFT=ON\
+		-DENABLE_GR_FILTER=ON\
+		-DENABLE_VOLK=ON\
+		-DENABLE_GR_IIO=ON\
+		-DCMAKE_C_FLAGS=-fno-asynchronous-unwind-tables\
+		-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3.exe\
+		-DGR_PYTHON_DIR==$STAGING_DIR/lib/python3.10/site-packages\
+		"
+	__build_with_cmake
 }
 
 build_grm2k() {
-	echo "### Building gr-m2k - branch $GRM2K_BRANCH"
 	CURRENT_BUILD=gr-m2k
 	CURRENT_BUILD_CMAKE_OPTS="\
-	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
-	-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
-	"
+		-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3.exe\
+		-DGR_PYTHON_DIR==$STAGING_DIR/lib/python3.10/site-packages\
+		"
 	__build_with_cmake
 }
 
 build_grscopy() {
-	echo "### Building gr-scopy - branch $GRSCOPY_BRANCH"
 	CURRENT_BUILD=gr-scopy
 	CURRENT_BUILD_CMAKE_OPTS="\
-	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3\
-	-DGR_PYTHON_DIR=C:/msys64/mingw64/lib/python3.9/site-packages\
-	"
+		-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3.exe\
+		-DGR_PYTHON_DIR=$STAGING_DIR/lib/python3.10/site-packages\
+		"
 	__build_with_cmake
+}
+
+build_qwt() {
+	echo "### Building qwt - branch $QWT_BRANCH"
+	CURRENT_BUILD=qwt
+	pushd $CURRENT_BUILD
+	$QMAKE
+	make $JOBS
+	make INSTALL_ROOT="$STAGING_DIR" $JOBS install
+	cp $STAGING_DIR/lib/qwt.dll $STAGING_DIR/bin/qwt.dll
+	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
+	popd
 }
 
 build_libsigrokdecode() {
@@ -314,18 +289,6 @@ build_libsigrokdecode() {
 	popd
 }
 
-build_qwt() {
-	echo "### Building qwt - branch $QWT_BRANCH"
-	CURRENT_BUILD=qwt
-	pushd $CURRENT_BUILD
-	$QMAKE
-	make $JOBS
-	make INSTALL_ROOT="$STAGING_DIR" $JOBS install
-	cp $STAGING_DIR/lib/qwt.dll $STAGING_DIR/bin/qwt.dll
-	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
-	popd
-}
-
 build_libtinyiiod() {
 	echo "### Building libtinyiiod - branch $LIBTINYIIOD_BRANCH"
 	CURRENT_BUILD=libtinyiiod
@@ -333,51 +296,47 @@ build_libtinyiiod() {
 	__build_with_cmake
 }
 
-build_qadvanceddocking() {
-echo "### Building Qt-Advanced-Docking-System "
-CURRENT_BUILD=qadvanceddocking
-__build_with_cmake
-
-}
-
 build_scopy() {
 	CURRENT_BUILD=scopy
 	NO_INSTALL="TRUE"
-	CURRENT_BUILD_CMAKE_OPTS="$RC_COMPILER_OPT \
-	-DBREAKPAD_HANDLER=ON \
-	-DWITH_DOC=ON \
-	-DPYTHON_EXECUTABLE=/$MINGW_VERSION/bin/python3.exe \
+	CURRENT_BUILD_CMAKE_OPTS="$RC_COMPILER_OPT\
+	-DBREAKPAD_HANDLER=ON\
+	-DWITH_DOC=ON\
+	-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3.exe\
+	-DENABLE_PLUGIN_M2K=ON
+	-DEMBED_PYTHON=ON
 	"
 	__build_with_cmake
 }
 
 package_and_push() {
-if [ -z $APPVEYOR ]; then
-	echo "Appveyor environment not detected"
-	return
-fi
 
-echo "" >> $BUILD_STATUS_FILE
-echo "$PACMAN -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
-$PACMAN -Qe >> $BUILD_STATUS_FILE
-echo "pacman -Qm output - all packages from nonsync sources" >> $BUILD_STATUS_FILE
-$PACMAN -Qm >> $BUILD_STATUS_FILE
+	if [ -z $APPVEYOR ]; then
+		echo "Appveyor environment not detected"
+		return
+	fi
 
-# Fix DLLs installed in the wrong path
-#mv ${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwt.dll \
-#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll \
-#	${WORKDIR}/msys64/${MINGW_VERSION}/bin
+	echo "" >> $BUILD_STATUS_FILE
+	echo "$PACMAN -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
+	$PACMAN -Qe >> $BUILD_STATUS_FILE
+	echo "pacman -Qm output - all packages from nonsync sources" >> $BUILD_STATUS_FILE
+	$PACMAN -Qm >> $BUILD_STATUS_FILE
 
-#rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc \
-#	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc \
-#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/*.la
+	# Fix DLLs installed in the wrong path
+	#mv ${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwt.dll\
+	#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll\
+	#	${WORKDIR}/msys64/${MINGW_VERSION}/bin
 
-echo "### Creating archive ... "
-tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
-appveyor PushArtifact $BUILD_STATUS_FILE
-$PACMAN -Q > /tmp/AllInstalledPackages
-appveyor PushArtifact /tmp/AllInstalledPackages
-echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
+	#rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc\
+	#	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc\
+	#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/*.la
+
+	echo "### Creating archive ... "
+	tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
+	appveyor PushArtifact $BUILD_STATUS_FILE
+	$PACMAN -Q > /tmp/AllInstalledPackages
+	appveyor PushArtifact /tmp/AllInstalledPackages
+	echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 }
 
 build_deps() {
@@ -394,7 +353,6 @@ build_grm2k
 build_qwt
 build_libsigrokdecode
 build_libtinyiiod
-#build_qadvanceddocking
 }
 
 #recurse_submodules
@@ -404,3 +362,46 @@ build_libtinyiiod
 #build_deps
 #build_scopy # for testing
 #package_and_push
+
+
+
+
+# build_griio() {
+# 	echo "### Building gr-iio - branch $GRIIO_BRANCH"
+
+# 	CURRENT_BUILD=gr-iio
+# 	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
+# 	CURRENT_BUILD_CMAKE_OPTS="
+# 	-DCMAKE_CXX_FLAGS=-D_hypot=hypot\
+# 	-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3\
+# 	"
+# 	__build_with_cmake
+
+# }
+
+# build_qadvanceddocking() {
+# echo "### Building Qt-Advanced-Docking-System "
+# CURRENT_BUILD=qadvanceddocking
+# __build_with_cmake
+
+# }
+
+# build_log4cpp() {
+# 	CURRENT_BUILD=log4cpp
+
+# 	# this is a fix for MINGW long long long is too long - patch the config-MingW32.h
+# 	# probably not the cleanest patch - deletes this line
+# 	# https://github.com/orocos-toolchain/log4cpp/blob/359be7d88eb8a87f618620918c73ef1fc6e87242/include/log4cpp/config-MinGW32.h#L27
+# 	# we need a better patch here or maybe use another repo
+
+# 	CURRENT_BUILD_POST_CLEAN="
+# 	git reset --hard &&
+# 	sed '27d' ../include/log4cpp/config-MinGW32.h > temp && mv temp ../include/log4cpp/config-MinGW32.h;
+# 	"
+# 	# LOG4CPP puts dll in wrong file for MINGW - it should be in bin, but it puts it in lib so we copy it
+# 	CURRENT_BUILD_POST_MAKE="
+# 	mkdir -p $STAGING_DIR/bin &&
+# 	cp $STAGING_DIR/lib/liblog4cpp.dll $STAGING_DIR/bin/liblog4cpp.dll
+# 	"
+# 	__build_with_cmake
+# }

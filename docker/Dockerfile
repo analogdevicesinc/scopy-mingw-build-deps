@@ -30,18 +30,22 @@ RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Su"
 RUN C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Syuu" & C:\msys64\usr\bin\bash.exe -lc "pacman --noconfirm -Scc "
 # install general packages needed to run build scripts
 RUN C:\msys64\usr\bin\bash.exe -c 'pacman --noconfirm --needed -Sy git'
-RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch qt5-gr3.10"
+RUN C:\msys64\usr\bin\bash.exe -c "git clone https://github.com/analogdevicesinc/scopy-mingw-build-deps --branch ci-for-scopy2"
 
 # install packages and build scopy-deps
 ARG BUILD_TARGET=x86_64 
 ENV BUILD_TARGET=$BUILD_TARGET
-RUN echo %BUILD_TARGET%
+ARG USE_STAGING=OFF
+ENV USE_STAGING=$USE_STAGING
+
+RUN echo BUILD_TARGET=%BUILD_TARGET%
+RUN echo USE_STAGING=%USE_STAGING%
 
 # exit 0 is required because init_staging force terminates the msys process resulting in an error - it is not an error
-RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && ls && echo Building for $BUILD_TARGET && ./init_staging.sh $BUILD_TARGET" & exit 0 
-RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && source build.sh $BUILD_TARGET && install_tools && install_deps && recurse_submodules"
+RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && ls && echo Building for $BUILD_TARGET && ./init_staging.sh $BUILD_TARGET $USE_STAGING" & exit 0
+RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && source build.sh $BUILD_TARGET $USE_STAGING && install_tools && install_deps && recurse_submodules"
 RUN C:\msys64\home\docker\scopy-mingw-build-deps\is.exe /VERYSILENT /SP- /SUPPRESSMSGBOXES /NORESTART /LOG=C:\msys64\home\docker\iss.log /DIR=C:\innosetup
-RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && source build.sh $BUILD_TARGET && build_deps"
+RUN C:\msys64\usr\bin\bash.exe -c "cd /home/docker/scopy-mingw-build-deps && source build.sh $BUILD_TARGET $USE_STAGING && build_deps"
 # clone scopy
 
 # build scopy
