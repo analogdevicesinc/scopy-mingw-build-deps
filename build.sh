@@ -34,6 +34,7 @@ PACMAN_SYNC_DEPS="\
 	mingw-w64-${ARCH}-zlib\
 	mingw-w64-${ARCH}-breakpad\
 	mingw-w64-${ARCH}-libusb\
+	mingw-w64-${ARCH}-libserialport\
 "
 
 
@@ -151,7 +152,7 @@ build_libiio() {
 		${RC_COMPILER_OPT}\
 		-DENABLE_IPV6=OFF\
 		-DWITH_USB_BACKEND=ON\
-		-DWITH_SERIAL_BACKEND=OFF\
+		-DWITH_SERIAL_BACKEND=ON\
 		-DWITH_TESTS:BOOL=OFF\
 		-DWITH_DOC:BOOL=OFF\
 		-DCSHARP_BINDINGS:BOOL=OFF\
