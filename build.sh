@@ -69,7 +69,7 @@ install_tools() {
 }
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
-	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.75.0-9-any.pkg.tar.zst 
+	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.79.0-4-any.pkg.tar.zst
 }
 
 recurse_submodules() {
