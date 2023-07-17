@@ -158,6 +158,7 @@ build_libiio() {
 		-DCSHARP_BINDINGS:BOOL=OFF\
 		-DPYTHON_BINDINGS:BOOL=OFF\
 		-DHAVE_DNS_SD:BOOL=ON\
+		-DENABLE_IPV6:BOOL=OFF\
 	"
 	__build_with_cmake
 }
