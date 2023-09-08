@@ -17,6 +17,7 @@ TOOLS_PKGS="\
 	vim\
 	base-devel\
 	mingw-w64-${ARCH}-autotools\
+	libtool\
 "
 	#mingw-w64-${ARCH}-boost 
 PACMAN_SYNC_DEPS="\
