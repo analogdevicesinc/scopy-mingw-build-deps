@@ -1,6 +1,5 @@
 #!/usr/bin/bash.exe
 
-#set -ex
 source mingw_toolchain.sh $1 $2 $3
 
 TOOLS_PKGS="\
@@ -41,8 +40,8 @@ PACMAN_SYNC_DEPS="\
 
 install_tools() {
 	$PACMAN -S unzip zip
-	mkdir -p $WORKDIR/windres
-	pushd $WORKDIR/windres
+	mkdir -p $WORKFOLDER/windres
+	pushd $WORKFOLDER/windres
 	if [ ! -f windres.exe.gz ]; then 
 		wget http://swdownloads.analog.com/cse/build/windres.exe.gz
 		gunzip windres.exe.gz
@@ -74,7 +73,7 @@ install_deps() {
 }
 
 recurse_submodules() {
-	pushd $WORKDIR
+	pushd $WORKFOLDER
 	git submodule update --init --recursive --jobs 9
 	popd
 }
@@ -99,14 +98,14 @@ echo $BUILD_STATUS_FILE
 
 echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
 echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
-#ls ${WORKDIR}/old_msys_deps_${MINGW_VERSION}
+#ls ${WORKFOLDER}/old_msys_deps_${MINGW_VERSION}
 }
 
 __clean_build_dir() {
 	git clean -xdf
-	rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
-	mkdir ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
-	cd ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
+	rm -rf ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
+	mkdir ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
+	cd ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
 }
 
 __build_with_cmake() {
@@ -114,11 +113,11 @@ __build_with_cmake() {
 	if [ ! -z $NO_INSTALL ]; then
 		INSTALL=""
 	fi
-	pushd $WORKDIR/$CURRENT_BUILD
+	pushd $WORKFOLDER/$CURRENT_BUILD
 	__clean_build_dir
 	eval $CURRENT_BUILD_POST_CLEAN
 	eval $CURRENT_BUILD_PATCHES
-	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKDIR/$CURRENT_BUILD
+	$CMAKE $CURRENT_BUILD_CMAKE_OPTS $WORKFOLDER/$CURRENT_BUILD
 	eval $CURRENT_BUILD_POST_CMAKE
 	make $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE		
@@ -133,7 +132,7 @@ __build_with_cmake() {
 	NO_INSTALL=""
 	popd
 	if [ ! -z $INSTALL ]; then
-		rm -rf ${WORKDIR}/$CURRENT_BUILD/build-${ARCH}
+		rm -rf ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
 	fi
 }
 
@@ -271,24 +270,24 @@ build_libsigrokdecode() {
 	echo "### Building libsigrokdecode - branch $LIBSIGROKDECODE_BRANCH"
 	CURRENT_BUILD=libsigrokdecode
 
-	pushd $WORKDIR/libsigrokdecode
-	if [ -d "$WORKDIR/libsigrokdecode/build-$ARCH" ]; then
+	pushd $WORKFOLDER/libsigrokdecode
+	if [ -d "$WORKFOLDER/libsigrokdecode/build-$ARCH" ]; then
 		# hack .. this gets messed up somehow in docker due to changing files to lowercase
 		git reset --hard
 		git clean -xdf
 	fi
 
-	rm -rf ${WORKDIR}/libsigrokdecode/build-${ARCH}
-	mkdir -p ${WORKDIR}/libsigrokdecode/build-${ARCH}
-	cd ${WORKDIR}/libsigrokdecode
+	rm -rf ${WORKFOLDER}/libsigrokdecode/build-${ARCH}
+	mkdir -p ${WORKFOLDER}/libsigrokdecode/build-${ARCH}
+	cd ${WORKFOLDER}/libsigrokdecode
 
-	patch -p1 < ${WORKDIR}/sigrokdecode-windows-fix.patch
+	patch -p1 < ${WORKFOLDER}/sigrokdecode-windows-fix.patch
 	./autogen.sh
 	cd build-${ARCH}
 
 	CPPFLAGS="-DLIBSIGROKDECODE_EXPORT=1" ../configure ${AUTOCONF_OPTS}
 	$MAKE_BIN $JOBS install
-	rm -rf ${WORKDIR}/libsigrokdecode/build-${ARCH}
+	rm -rf ${WORKFOLDER}/libsigrokdecode/build-${ARCH}
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
 	popd
 }
@@ -327,20 +326,20 @@ package_and_push() {
 	$PACMAN -Qm >> $BUILD_STATUS_FILE
 
 	# Fix DLLs installed in the wrong path
-	#mv ${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwt.dll\
-	#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll\
-	#	${WORKDIR}/msys64/${MINGW_VERSION}/bin
+	#mv ${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/qwt.dll\
+	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll\
+	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/bin
 
-	#rm -rf ${WORKDIR}/msys64/${MINGW_VERSION}/doc\
-	#	${WORKDIR}/msys64/${MINGW_VERSION}/share/doc\
-	#	${WORKDIR}/msys64/${MINGW_VERSION}/lib/*.la
+	#rm -rf ${WORKFOLDER}/msys64/${MINGW_VERSION}/doc\
+	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/share/doc\
+	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/*.la
 
 	echo "### Creating archive ... "
-	tar cavf ${WORKDIR}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKDIR} msys64
+	tar cavf ${WORKFOLDER}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKFOLDER} msys64
 	appveyor PushArtifact $BUILD_STATUS_FILE
 	$PACMAN -Q > /tmp/AllInstalledPackages
 	appveyor PushArtifact /tmp/AllInstalledPackages
-	echo -n ${PACMAN_SYNC_DEPS} > ${WORKDIR}/scopy-$MINGW_VERSION-build-deps-pacman.txt
+	echo -n ${PACMAN_SYNC_DEPS} > ${WORKFOLDER}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 }
 
 build_deps() {
@@ -366,46 +365,3 @@ build_libtinyiiod
 #build_deps
 #build_scopy # for testing
 #package_and_push
-
-
-
-
-# build_griio() {
-# 	echo "### Building gr-iio - branch $GRIIO_BRANCH"
-
-# 	CURRENT_BUILD=gr-iio
-# 	# -D_hypot=hypot: http://boost.2283326.n4.nabble.com/Boost-Python-Compile-Error-s-GCC-via-MinGW-w64-td3165793.html#a3166757
-# 	CURRENT_BUILD_CMAKE_OPTS="
-# 	-DCMAKE_CXX_FLAGS=-D_hypot=hypot\
-# 	-DPYTHON_EXECUTABLE=$STAGING_DIR/bin/python3\
-# 	"
-# 	__build_with_cmake
-
-# }
-
-# build_qadvanceddocking() {
-# echo "### Building Qt-Advanced-Docking-System "
-# CURRENT_BUILD=qadvanceddocking
-# __build_with_cmake
-
-# }
-
-# build_log4cpp() {
-# 	CURRENT_BUILD=log4cpp
-
-# 	# this is a fix for MINGW long long long is too long - patch the config-MingW32.h
-# 	# probably not the cleanest patch - deletes this line
-# 	# https://github.com/orocos-toolchain/log4cpp/blob/359be7d88eb8a87f618620918c73ef1fc6e87242/include/log4cpp/config-MinGW32.h#L27
-# 	# we need a better patch here or maybe use another repo
-
-# 	CURRENT_BUILD_POST_CLEAN="
-# 	git reset --hard &&
-# 	sed '27d' ../include/log4cpp/config-MinGW32.h > temp && mv temp ../include/log4cpp/config-MinGW32.h;
-# 	"
-# 	# LOG4CPP puts dll in wrong file for MINGW - it should be in bin, but it puts it in lib so we copy it
-# 	CURRENT_BUILD_POST_MAKE="
-# 	mkdir -p $STAGING_DIR/bin &&
-# 	cp $STAGING_DIR/lib/liblog4cpp.dll $STAGING_DIR/bin/liblog4cpp.dll
-# 	"
-# 	__build_with_cmake
-# }

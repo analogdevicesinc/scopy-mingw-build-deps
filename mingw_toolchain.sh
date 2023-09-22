@@ -1,9 +1,11 @@
 #!/usr/bin/bash.exe
 
-#source build_system_setup.sh
 #TODO: make each dep install it's own deps
-
-#set -ex
+set -x
+if [ "$CI_SCRIPT" == "ON" ]
+	then
+	set -ex
+fi
 
 if [ $# -ne 1 ];
 	then
@@ -22,13 +24,7 @@ if [ "$ARCH" == "x86_64" ]
 		export ARCH_BIT=32
 fi
 
-if [ -z "$HOME" ] || [ "$HOME" == "/" ]; then
-    export HOME=/home/docker
-fi
-
-export WORKDIR=${PWD}
-export JOBS="-j9"
-
+export WORKFOLDER=${PWD}
 USE_STAGING=$2
 STAGING_PREFIX=$3
 
@@ -39,13 +35,13 @@ if [ ! -z "$USE_STAGING" ] && [ "$USE_STAGING" == "ON" ]
 		if [ -z "$STAGING_PREFIX" ]
 			then
 				STAGING_PREFIX="staging"
-				export STAGING_ENV=$WORKDIR/staging_$ARCH
+				export STAGING_ENV=$WORKFOLDER/staging_$ARCH
 			else
 				echo -- STAGING_PREFIX:$STAGING_PREFIX
 				export STAGING_ENV=${STAGING_PREFIX}_${ARCH}
 		fi
 		export STAGING=${STAGING_PREFIX}_${ARCH}
-		export STAGING_DIR=${WORKDIR}/${STAGING}/${MINGW_VERSION}
+		export STAGING_DIR=${WORKFOLDER}/${STAGING}/${MINGW_VERSION}
 		export PACMAN="pacman -r $STAGING_ENV --noconfirm --needed"
 	else
 		echo -- NO STAGING
@@ -55,12 +51,12 @@ if [ ! -z "$USE_STAGING" ] && [ "$USE_STAGING" == "ON" ]
 		export PACMAN="pacman --noconfirm --needed"
 fi
 
-export PATH="/bin:$STAGING_DIR/bin:$WORKDIR/cv2pdb:/c/innosetup/:/bin:/usr/bin:${STAGING_DIR}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent:$PATH"
+export PATH="/bin:$STAGING_DIR/bin:$WORKFOLDER/cv2pdb:/c/Program Files (x86)/Inno Setup 6:/c/innosetup/:/bin:/usr/bin:${STAGING_DIR}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent:$PATH"
 export QMAKE=${STAGING_DIR}/bin/qmake
 export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
 export CC=${STAGING_DIR}/bin/${ARCH}-w64-mingw32-gcc.exe
 export CXX=${STAGING_DIR}/bin/${ARCH}-w64-mingw32-g++.exe
-export JOBS="-j" #change number of jobs
+export JOBS="-j9"
 export MAKE_BIN=$STAGING_ENV/usr/bin/make.exe
 export MAKE_CMD="$MAKE_BIN $JOBS"
 export CMAKE_GENERATOR="Unix Makefiles"
@@ -85,7 +81,7 @@ export AUTOCONF_OPTS="--prefix=$STAGING_DIR \
 
 if [ ${ARCH} == "i686" ]
 	then
-		export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=$WORKDIR/windres/windres.exe"
+		export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=$WORKFOLDER/windres/windres.exe"
 	else
 		export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/mingw64/bin/windres.exe"
 fi
