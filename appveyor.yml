@@ -8,8 +8,6 @@ environment:
     matrix:
       - MINGW_VERSION: mingw64
         ARCH: x86_64
-      - MINGW_VERSION: mingw32
-        ARCH: i686
 
 install:
     # Update MSYS2 - https://www.msys2.org/docs/ci/#appveyor
@@ -22,12 +20,9 @@ install:
 
     - cd C:\projects\scopy-mingw-build-deps
 build_script:
-    - C:\msys64\usr\bin\bash init_staging.sh
-    - C:\msys64\usr\bin\bash build.sh
+    - C:\msys64\usr\bin\bash build.sh install_tools install_deps recurse_submodules build_deps write_status_file
     - echo "### Push artifacts ... "
     - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps-pacman.txt
-    - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-deps.tar.xz
-    - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\old-msys-build-deps-%MINGW_VERSION%.tar.xz
-
+    - appveyor PushArtifact c:\projects\scopy-mingw-build-deps\scopy-%MINGW_VERSION%-build-status-file.txt
 #on_finish:
 #      - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

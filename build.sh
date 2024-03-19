@@ -302,12 +302,12 @@ build_scopy() {
 }
 
 write_status_file() {
-
 	echo "" >> $BUILD_STATUS_FILE
 	echo "$PACMAN -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
 	$PACMAN -Qe >> $BUILD_STATUS_FILE
 	echo "pacman -Qm output - all packages from nonsync sources" >> $BUILD_STATUS_FILE
 	$PACMAN -Qm >> $BUILD_STATUS_FILE
+	cp $BUILD_STATUS_FILE ${WORKFOLDER}/scopy-$MINGW_VERSION-build-status-file.txt
 	echo -n ${PACMAN_SYNC_DEPS} > ${WORKFOLDER}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 }
 
