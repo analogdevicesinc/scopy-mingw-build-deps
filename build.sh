@@ -1,6 +1,6 @@
 #!/usr/bin/bash.exe
 
-source mingw_toolchain.sh $1 $2 $3
+source mingw_toolchain.sh $1 $2
 
 TOOLS_PKGS="\
 	mingw-w64-${ARCH}-cmake\
@@ -37,36 +37,37 @@ PACMAN_SYNC_DEPS="\
 	mingw-w64-${ARCH}-libserialport\
 "
 
-
 install_tools() {
 	$PACMAN -S unzip zip
 	mkdir -p $WORKFOLDER/windres
 	pushd $WORKFOLDER/windres
-	if [ ! -f windres.exe.gz ]; then 
+	if [ ! -f windres.exe.gz ]; then
 		wget http://swdownloads.analog.com/cse/build/windres.exe.gz
 		gunzip windres.exe.gz
 	fi
 	popd
-	
-	wget http://swdownloads.analog.com/cse/m1k/drivers/dpinst.zip
-	wget http://swdownloads.analog.com/cse/m1k/drivers/dfu-util.zip
-	unzip "dpinst.zip"
-    unzip "dfu-util.zip"
 
-	# github release upload tool install
-	wget https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_windows_amd64.zip
-	unzip ghr_v0.13.0_windows_amd64.zip
-	export UPLOAD_TOOL=/c/ghr/ghr_v0.13.0_windows_amd64/ghr.exe
-	
-	wget https://swdownloads.analog.com/cse/scopydeps/cv2pdb-dlls.zip	
-	unzip "cv2pdb-dlls.zip"	
+	if [ ! -f dpinst.zip ]; then
+		wget http://swdownloads.analog.com/cse/m1k/drivers/dpinst.zip
+		unzip "dpinst.zip"
+	fi
 
-	wget https://jrsoftware.org/download.php/is.exe 
-	
-	#pacman --noconfirm --needed -S $TOOLS_PKGS
+	if [ ! -f dfu-util.zip ]; then
+		wget http://swdownloads.analog.com/cse/m1k/drivers/dfu-util.zip
+		unzip "dfu-util.zip"
+	fi
+
+	if [ ! -f cv2pdb-dlls.zip ]; then
+		wget https://swdownloads.analog.com/cse/scopydeps/cv2pdb-dlls.zip
+		unzip "cv2pdb-dlls.zip"
+	fi
+
+	if [! -f is.exe ]; then
+		wget https://jrsoftware.org/download.php/is.exe
+	fi
 	$PACMAN -S $TOOLS_PKGS
-	
 }
+
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
 	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.79.0-4-any.pkg.tar.zst
@@ -79,40 +80,37 @@ recurse_submodules() {
 }
 
 create_build_status_file() {
+	echo "Built scopy-mingw-build-deps on Appveyor" >> $BUILD_STATUS_FILE
+	echo "on $(date)" >> $BUILD_STATUS_FILE
+	echo "url: ${APPVEYOR_URL}" >> $BUILD_STATUS_FILE
+	echo "api_url: ${APPVEYOR_API_URL}" >> $BUILD_STATUS_FILE
+	echo "acc_name: ${APPVEYOR_ACCOUNT_NAME}" >> $BUILD_STATUS_FILE
+	echo "prj_name: ${APPVEYOR_PROJECT_NAME}" >> $BUILD_STATUS_FILE
+	echo "build_id: ${APPVEYOR_BUILD_ID}" >> $BUILD_STATUS_FILE
+	echo "build_nr: ${APPVEYOR_BUILD_NUMBER}" >> $BUILD_STATUS_FILE
+	echo "build_version: ${APPVEYOR_BUILD_VERSION}" >> $BUILD_STATUS_FILE
+	echo "job_id: ${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
+	echo "job_name: ${APPVEYOR_JOB_NAME}" >> $BUILD_STATUS_FILE
+	echo "job_nr: ${APPVEYOR_JOB_NUMBER}" >> $BUILD_STATUS_FILE
+	echo "job_link:  ${APPVEYOR_URL}/project/${APPVEYOR_ACCOUNT_NAME}/${APPVEYOR_PROJECT_NAME}/builds/${APPVEYOR_BUILD_ID}/job/${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
 
-echo "Built scopy-mingw-build-deps on Appveyor" >> $BUILD_STATUS_FILE
-echo "on $(date)" >> $BUILD_STATUS_FILE
-echo "url: ${APPVEYOR_URL}" >> $BUILD_STATUS_FILE
-echo "api_url: ${APPVEYOR_API_URL}" >> $BUILD_STATUS_FILE
-echo "acc_name: ${APPVEYOR_ACCOUNT_NAME}" >> $BUILD_STATUS_FILE
-echo "prj_name: ${APPVEYOR_PROJECT_NAME}" >> $BUILD_STATUS_FILE
-echo "build_id: ${APPVEYOR_BUILD_ID}" >> $BUILD_STATUS_FILE
-echo "build_nr: ${APPVEYOR_BUILD_NUMBER}" >> $BUILD_STATUS_FILE
-echo "build_version: ${APPVEYOR_BUILD_VERSION}" >> $BUILD_STATUS_FILE
-echo "job_id: ${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
-echo "job_name: ${APPVEYOR_JOB_NAME}" >> $BUILD_STATUS_FILE
-echo "job_nr: ${APPVEYOR_JOB_NUMBER}" >> $BUILD_STATUS_FILE
-echo "job_link:  ${APPVEYOR_URL}/project/${APPVEYOR_ACCOUNT_NAME}/${APPVEYOR_PROJECT_NAME}/builds/${APPVEYOR_BUILD_ID}/job/${APPVEYOR_JOB_ID}" >> $BUILD_STATUS_FILE
+	echo $BUILD_STATUS_FILE
 
-echo $BUILD_STATUS_FILE
-
-echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
-echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
-#ls ${WORKFOLDER}/old_msys_deps_${MINGW_VERSION}
+	echo "Repo deps locations/files" >> $BUILD_STATUS_FILE
+	echo $PACMAN_REPO_DEPS >> $BUILD_STATUS_FILE
+	#ls ${WORKFOLDER}/old_msys_deps_${MINGW_VERSION}
 }
 
 __clean_build_dir() {
 	git clean -xdf
-	rm -rf ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
-	mkdir ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
-	cd ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
+	rm -rf ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
+	mkdir ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
+	cd ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
 }
 
 __build_with_cmake() {
 	INSTALL="install"
-	if [ ! -z $NO_INSTALL ]; then
-		INSTALL=""
-	fi
+	[ -z $NO_INSTALL ] || INSTALL=""
 	pushd $WORKFOLDER/$CURRENT_BUILD
 	__clean_build_dir
 	eval $CURRENT_BUILD_POST_CLEAN
@@ -131,11 +129,9 @@ __build_with_cmake() {
 	CURRENT_BUILD=""
 	NO_INSTALL=""
 	popd
-	if [ ! -z $INSTALL ]; then
-		rm -rf ${WORKFOLDER}/$CURRENT_BUILD/build-${ARCH}
-	fi
+	#clean deps folder
+	[ -z $INSTALL ] || rm -rf ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
 }
-
 
 build_glog() {
 	CURRENT_BUILD=glog
@@ -183,6 +179,7 @@ build_libm2k() {
 }
 
 build_spdlog() {
+	[ -f "/usr/bin/x86_64-w64-mingw32-windres.exe" ] && rm -v /usr/bin/x86_64-w64-mingw32-windres.exe
 	ln -s /usr/bin/windres.exe /usr/bin/x86_64-w64-mingw32-windres.exe
 	CURRENT_BUILD=spdlog
 	CURRENT_BUILD_CMAKE_OPTS="\
@@ -258,8 +255,9 @@ build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
 	CURRENT_BUILD=qwt
 	pushd $CURRENT_BUILD
-	$QMAKE
-	make $JOBS
+	git clean -xdf
+	$QMAKE qwt.pro
+	VERBOSE=1 make LDFLAGS="-Wl,verbose"  $JOBS
 	make INSTALL_ROOT="$STAGING_DIR" $JOBS install
 	cp $STAGING_DIR/lib/qwt.dll $STAGING_DIR/bin/qwt.dll
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
@@ -312,51 +310,35 @@ build_scopy() {
 	__build_with_cmake
 }
 
-package_and_push() {
-
-	if [ -z $APPVEYOR ]; then
-		echo "Appveyor environment not detected"
-		return
-	fi
+write_status_file() {
 
 	echo "" >> $BUILD_STATUS_FILE
 	echo "$PACMAN -Qe output - all explicitly installed packages on build machine" >> $BUILD_STATUS_FILE
 	$PACMAN -Qe >> $BUILD_STATUS_FILE
 	echo "pacman -Qm output - all packages from nonsync sources" >> $BUILD_STATUS_FILE
 	$PACMAN -Qm >> $BUILD_STATUS_FILE
-
-	# Fix DLLs installed in the wrong path
-	#mv ${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/qwt.dll\
-	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/qwtpolar.dll\
-	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/bin
-
-	#rm -rf ${WORKFOLDER}/msys64/${MINGW_VERSION}/doc\
-	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/share/doc\
-	#	${WORKFOLDER}/msys64/${MINGW_VERSION}/lib/*.la
-
-	echo "### Creating archive ... "
-	tar cavf ${WORKFOLDER}/scopy-${MINGW_VERSION}-build-deps.tar.xz -C ${WORKFOLDER} msys64
-	appveyor PushArtifact $BUILD_STATUS_FILE
-	$PACMAN -Q > /tmp/AllInstalledPackages
-	appveyor PushArtifact /tmp/AllInstalledPackages
 	echo -n ${PACMAN_SYNC_DEPS} > ${WORKFOLDER}/scopy-$MINGW_VERSION-build-deps-pacman.txt
 }
 
 build_deps() {
-build_glog
-build_libiio
-build_libad9361
-build_libm2k
-build_spdlog
-build_libsndfile
-build_volk
-build_gnuradio
-build_grscopy
-build_grm2k
-build_qwt
-build_libsigrokdecode
-build_libtinyiiod
+	build_libiio
+	build_libad9361
+	build_libm2k
+	build_spdlog
+	build_libsndfile
+	build_volk
+	build_gnuradio
+	build_grscopy
+	build_grm2k
+	build_qwt
+	build_libsigrokdecode
+	build_libtinyiiod
 }
+
+
+for arg in $@; do
+	$arg
+done
 
 #recurse_submodules
 #install_tools

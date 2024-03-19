@@ -1,32 +1,12 @@
 #!/usr/bin/bash.exe
 
-#TODO: make each dep install it's own deps
-set -x
-if [ "$CI_SCRIPT" == "ON" ]
-	then
-	set -ex
-fi
+set -ex
 
-if [ $# -ne 1 ];
-	then
-		ARG1=x86_64
-	else
-		ARG1=$1
-fi
-export ARCH=$ARG1
-
-if [ "$ARCH" == "x86_64" ]
-	then
-		export MINGW_VERSION=mingw64
-		export ARCH_BIT=64
-	else
-		export MINGW_VERSION=mingw32
-		export ARCH_BIT=32
-fi
-
+export MINGW_VERSION=mingw64
+export ARCH=x86_64
 export WORKFOLDER=${PWD}
-USE_STAGING=$2
-STAGING_PREFIX=$3
+USE_STAGING=$1
+STAGING_PREFIX=$2
 
 if [ ! -z "$USE_STAGING" ] && [ "$USE_STAGING" == "ON" ]
 	then
@@ -51,6 +31,7 @@ if [ ! -z "$USE_STAGING" ] && [ "$USE_STAGING" == "ON" ]
 		export PACMAN="pacman --noconfirm --needed"
 fi
 
+export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/mingw64/bin/windres.exe"
 export PATH="/bin:$STAGING_DIR/bin:$WORKFOLDER/cv2pdb:/c/Program Files (x86)/Inno Setup 6:/c/innosetup/:/bin:/usr/bin:${STAGING_DIR}/bin:/c/Program\ Files/Git/cmd:/c/Windows/System32:/c/Program\ Files/Appveyor/BuildAgent:$PATH"
 export QMAKE=${STAGING_DIR}/bin/qmake
 export PKG_CONFIG_PATH=$STAGING_DIR/lib/pkgconfig
@@ -78,13 +59,6 @@ export AUTOCONF_OPTS="--prefix=$STAGING_DIR \
 	--host=${ARCH}-w64-mingw32 \
 	--enable-shared \
 	--disable-static"
-
-if [ ${ARCH} == "i686" ]
-	then
-		export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=$WORKFOLDER/windres/windres.exe"
-	else
-		export RC_COMPILER_OPT="-DCMAKE_RC_COMPILER=/mingw64/bin/windres.exe"
-fi
 
 BUILD_STATUS_FILE=/tmp/scopy-mingw-build-status
 touch $BUILD_STATUS_FILE
