@@ -133,15 +133,6 @@ __build_with_cmake() {
 	[ -z $INSTALL ] || rm -rf ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
 }
 
-build_glog() {
-	CURRENT_BUILD=glog
-	CURRENT_BUILD_CMAKE_OPTS="\
-	-DWITH_GFLAGS=OFF\
-	-DBUILD_SHARED_LIBS=ON\
-	"
-	__build_with_cmake
-}
-
 build_libiio() {
 	CURRENT_BUILD=libiio
 	CURRENT_BUILD_CMAKE_OPTS="\
