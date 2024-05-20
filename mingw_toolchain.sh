@@ -1,10 +1,10 @@
 #!/usr/bin/bash.exe
 
 set -ex
-
 export MINGW_VERSION=mingw64
 export ARCH=x86_64
-export WORKFOLDER=${PWD}
+# get the full directory path of the script
+export WORKFOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 USE_STAGING=$1
 STAGING_PREFIX=$2
 

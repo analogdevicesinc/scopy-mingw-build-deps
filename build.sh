@@ -1,6 +1,8 @@
 #!/usr/bin/bash.exe
-
-source mingw_toolchain.sh $1 $2
+set -xe
+# get the full directory path of the script
+SRC_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source $SRC_DIR/mingw_toolchain.sh $1 $2
 
 TOOLS_PKGS="\
 	mingw-w64-${ARCH}-cmake\
@@ -39,13 +41,11 @@ PACMAN_SYNC_DEPS="\
 
 install_tools() {
 	$PACMAN -S unzip zip
-	mkdir -p $WORKFOLDER/windres
-	pushd $WORKFOLDER/windres
-	if [ ! -f windres.exe.gz ]; then
+	pushd $WORKFOLDER
+	if [ ! -f windres.exe ]; then
 		wget http://swdownloads.analog.com/cse/build/windres.exe.gz
 		gunzip windres.exe.gz
 	fi
-	popd
 
 	if [ ! -f dpinst.zip ]; then
 		wget http://swdownloads.analog.com/cse/m1k/drivers/dpinst.zip
@@ -62,10 +62,11 @@ install_tools() {
 		unzip "cv2pdb-dlls.zip"
 	fi
 
-	if [! -f is.exe ]; then
+	if [ ! -f is.exe ]; then
 		wget https://jrsoftware.org/download.php/is.exe
 	fi
 	$PACMAN -S $TOOLS_PKGS
+	popd
 }
 
 install_deps() {
@@ -120,6 +121,11 @@ __build_with_cmake() {
 	make $JOBS $INSTALL
 	eval $CURRENT_BUILD_POST_MAKE		
 	echo "$CURRENT_BUILD - $(git rev-parse --short HEAD)" >> $BUILD_STATUS_FILE
+	popd
+
+	#clean deps folder
+	[ -z $INSTALL ] || rm -rf ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
+
 	# clear vars
 	CURRENT_BUILD_CMAKE_OPTS="" 
 	CURRENT_BUILD_POST_CLEAN=""
@@ -128,9 +134,6 @@ __build_with_cmake() {
 	CURRENT_BUILD_POST_MAKE=""
 	CURRENT_BUILD=""
 	NO_INSTALL=""
-	popd
-	#clean deps folder
-	[ -z $INSTALL ] || rm -rf ${WORKFOLDER}/${CURRENT_BUILD}/build-${ARCH}
 }
 
 build_libiio() {
@@ -162,7 +165,6 @@ build_libm2k() {
 		-DENABLE_CSHARP=OFF\
 		-DBUILD_EXAMPLES=OFF\
 		-DENABLE_TOOLS=ON\
-		-DENABLE_LOG=ON\
 		-DINSTALL_UDEV_RULES=OFF\
 		"
 	__build_with_cmake
@@ -244,7 +246,7 @@ build_grscopy() {
 build_qwt() {
 	echo "### Building qwt - branch $QWT_BRANCH"
 	CURRENT_BUILD=qwt
-	pushd $CURRENT_BUILD
+	pushd $WORKFOLDER/$CURRENT_BUILD
 	git clean -xdf
 	$QMAKE qwt.pro
 	VERBOSE=1 make LDFLAGS="-Wl,verbose"  $JOBS
@@ -258,7 +260,7 @@ build_libsigrokdecode() {
 	echo "### Building libsigrokdecode - branch $LIBSIGROKDECODE_BRANCH"
 	CURRENT_BUILD=libsigrokdecode
 
-	pushd $WORKFOLDER/libsigrokdecode
+	pushd $WORKFOLDER/$CURRENT_BUILD
 	if [ -d "$WORKFOLDER/libsigrokdecode/build-$ARCH" ]; then
 		# hack .. this gets messed up somehow in docker due to changing files to lowercase
 		git reset --hard
