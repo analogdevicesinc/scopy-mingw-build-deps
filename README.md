@@ -11,9 +11,13 @@ install_deps
 build_deps
 
 
-Dockerfile available in docker folder
-To build docker image.
-x86_64:
- docker build --progress=plain --tag scopy-build:mingw64 --build-arg BUILD_TARGET=x86_64 --isolation=hyperv --memory=16GB .
-i686:
- docker build --progress=plain --tag scopy-build:mingw32 --build-arg BUILD_TARGET=i686 --isolation=hyperv --memory=16GB .
+## Build the Docker image
+To build docker image execute the command from the ```scopy-mingw-build-deps/docker``` directory:
+### x86_64:
+```bash
+docker build --progress=plain --tag scopy-build:mingw64 --build-arg BUILD_TARGET=x86_64 --isolation=hyperv --memory=16GB .
+```
+### i686:
+```bash
+docker build --progress=plain --tag scopy-build:mingw32 --build-arg BUILD_TARGET=i686 --isolation=hyperv --memory=16GB .
+```
