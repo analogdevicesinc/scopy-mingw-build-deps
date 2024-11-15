@@ -6,7 +6,6 @@ source mingw_toolchain.sh $1
 TOOLS_PKGS="\
 	mingw-w64-${ARCH}-cmake \
 	mingw-w64-${ARCH}-gcc \
-	mingw-w64-${ARCH}-python3\
 	mingw-w64-${ARCH}-python-mako\
 	mingw-w64-${ARCH}-python-six\
 	mingw-w64-${ARCH}-make\
@@ -68,6 +67,7 @@ install_tools() {
 install_deps() {
 	$PACMAN -S $PACMAN_SYNC_DEPS
 	$PACMAN -U https://repo.msys2.org/mingw/${ARCH}/mingw-w64-${ARCH}-boost-1.85.0-4-any.pkg.tar.zst 
+	$PACMAN -U https://repo.msys2.org/msys/${ARCH}/python-3.11.9-1-${ARCH}.pkg.tar.zst
 }
 
 recurse_submodules() {
